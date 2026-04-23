@@ -1,4 +1,5 @@
 ﻿# UDP Word Broadcast для CODESYS 3.5 (Net Base Services)
+<img width="640" height="480" alt="image" src="https://github.com/user-attachments/assets/ae84f00c-69dd-4c80-96cf-ae06bf37d7f5" />
 
 ## Назначение
 Проект реализует передачу массива `WORD` по UDP через `NBS.UDP_Peer`.
