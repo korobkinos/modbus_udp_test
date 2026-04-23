@@ -1,9 +1,9 @@
 ﻿{attribute 'pack_mode' := '1'}
 (*
   Полный Modbus-блок одного канала UDP:
-  - cfg   : настройки канала (24 WORD)
-  - state : состояние и диагностика (48 WORD)
-  Итого: 72 WORD на канал.
+  - cfg   : настройки канала (16 WORD)
+  - state : состояние и диагностика (32 WORD)
+  Итого: 48 WORD на канал.
 *)
 TYPE ST_UdpBroadcastChannelModbus :
 STRUCT

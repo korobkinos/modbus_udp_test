@@ -7,9 +7,9 @@
 VAR_GLOBAL CONSTANT
     UDP_CHANNEL_COUNT : UINT := 10;  (* Количество каналов в массиве UdpBroadcast *)
     UDP_MB_CHANNEL_START_MW : UINT := 0; (* Стартовый адрес Modbus-карты каналов *)
-    UDP_MB_CFG_WORDS : UINT := 24;       (* Размер блока настроек канала, WORD *)
-    UDP_MB_STATE_WORDS : UINT := 48;     (* Размер блока состояний канала, WORD *)
-    UDP_MB_CHANNEL_STRIDE_WORDS : UINT := 72; (* Полный размер блока канала (настройки+состояния), WORD *)
+    UDP_MB_CFG_WORDS : UINT := 16;       (* Размер блока настроек канала, WORD *)
+    UDP_MB_STATE_WORDS : UINT := 32;     (* Размер блока состояний канала, WORD *)
+    UDP_MB_CHANNEL_STRIDE_WORDS : UINT := 48; (* Полный размер блока канала (настройки+состояния), WORD *)
 END_VAR
 
 VAR_GLOBAL
@@ -24,9 +24,9 @@ VAR_GLOBAL
     (*
       Modbus-карта каналов (настройки + состояния).
       Привязка начинается с %MW0.
-      Один канал занимает 72 регистра:
-      - cfg:   24 WORD
-      - state: 48 WORD
+      Один канал занимает 48 регистров:
+      - cfg:   16 WORD
+      - state: 32 WORD
       База канала ch: MW(UDP_MB_CHANNEL_START_MW + ch * UDP_MB_CHANNEL_STRIDE_WORDS).
     *)
     udp_channel_modbus AT %MW0 : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastChannelModbus;
@@ -50,128 +50,130 @@ VAR_GLOBAL
     udp_cfg : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastConfig := [
         (* Канал 0: AM01, порты 15001 -> 15000 *)
         (
-            enable                 := TRUE,
+            enable                 := 1,
             signature              := 16#31304D41,  (* AM01 *)
             local_port             := 15001,
             remote_port            := 15000,
-            max_packet_bytes_limit := DWORD#1472,
+            max_packet_bytes_limit := 1472,
             period_ms              := 2000,
-            start_send             := FALSE,
-            udp_data_start_index       := DWORD#0,
-            udp_data_end_index         := DWORD#34999
+            start_send             := 0,
+            udp_data_start_index       := 0,
+            udp_data_end_index         := 34999
         ),
         (* Канал 1: AM02, порты 15003 -> 15002 *)
         (
-            enable                 := TRUE,
+            enable                 := 1,
             signature              := 16#32304D41,  (* AM02 *)
             local_port             := 15003,
             remote_port            := 15002,
-            max_packet_bytes_limit := DWORD#1472,
+            max_packet_bytes_limit := 1472,
             period_ms              := 2000,
-            start_send             := FALSE,
-            udp_data_start_index       := DWORD#0,
-            udp_data_end_index         := DWORD#34999
+            start_send             := 0,
+            udp_data_start_index       := 0,
+            udp_data_end_index         := 34999
         ),
         (* Канал 2: AM03, порты 15005 -> 15004 *)
         (
-            enable                 := TRUE,
+            enable                 := 1,
             signature              := 16#33304D41,  (* AM03 *)
             local_port             := 15005,
             remote_port            := 15004,
-            max_packet_bytes_limit := DWORD#1472,
+            max_packet_bytes_limit := 1472,
             period_ms              := 2000,
-            start_send             := FALSE,
-            udp_data_start_index       := DWORD#0,
-            udp_data_end_index         := DWORD#34999
+            start_send             := 0,
+            udp_data_start_index       := 0,
+            udp_data_end_index         := 34999
         ),
         (* Канал 3: AM04, порты 15007 -> 15006 *)
         (
-            enable                 := FALSE,
+            enable                 := 0,
             signature              := 16#34304D41,  (* AM04 *)
             local_port             := 15007,
             remote_port            := 15006,
-            max_packet_bytes_limit := DWORD#1472,
+            max_packet_bytes_limit := 1472,
             period_ms              := 2000,
-            start_send             := FALSE,
-            udp_data_start_index       := DWORD#0,
-            udp_data_end_index         := DWORD#34999
+            start_send             := 0,
+            udp_data_start_index       := 0,
+            udp_data_end_index         := 34999
         ),
         (* Канал 4: AM05, порты 15009 -> 15008 *)
         (
-            enable                 := FALSE,
+            enable                 := 0,
             signature              := 16#35304D41,  (* AM05 *)
             local_port             := 15009,
             remote_port            := 15008,
-            max_packet_bytes_limit := DWORD#1472,
+            max_packet_bytes_limit := 1472,
             period_ms              := 2000,
-            start_send             := FALSE,
-            udp_data_start_index       := DWORD#0,
-            udp_data_end_index         := DWORD#34999
+            start_send             := 0,
+            udp_data_start_index       := 0,
+            udp_data_end_index         := 34999
         ),
         (* Канал 5: AM06, порты 15011 -> 15010 *)
         (
-            enable                 := FALSE,
+            enable                 := 0,
             signature              := 16#36304D41,  (* AM06 *)
             local_port             := 15011,
             remote_port            := 15010,
-            max_packet_bytes_limit := DWORD#1472,
+            max_packet_bytes_limit := 1472,
             period_ms              := 2000,
-            start_send             := FALSE,
-            udp_data_start_index       := DWORD#0,
-            udp_data_end_index         := DWORD#34999
+            start_send             := 0,
+            udp_data_start_index       := 0,
+            udp_data_end_index         := 34999
         ),
         (* Канал 6: AM07, порты 15013 -> 15012 *)
         (
-            enable                 := FALSE,
+            enable                 := 0,
             signature              := 16#37304D41,  (* AM07 *)
             local_port             := 15013,
             remote_port            := 15012,
-            max_packet_bytes_limit := DWORD#1472,
+            max_packet_bytes_limit := 1472,
             period_ms              := 2000,
-            start_send             := FALSE,
-            udp_data_start_index       := DWORD#0,
-            udp_data_end_index         := DWORD#34999
+            start_send             := 0,
+            udp_data_start_index       := 0,
+            udp_data_end_index         := 34999
         ),
         (* Канал 7: AM08, порты 15015 -> 15014 *)
         (
-            enable                 := FALSE,
+            enable                 := 0,
             signature              := 16#38304D41,  (* AM08 *)
             local_port             := 15015,
             remote_port            := 15014,
-            max_packet_bytes_limit := DWORD#1472,
+            max_packet_bytes_limit := 1472,
             period_ms              := 2000,
-            start_send             := FALSE,
-            udp_data_start_index       := DWORD#0,
-            udp_data_end_index         := DWORD#34999
+            start_send             := 0,
+            udp_data_start_index       := 0,
+            udp_data_end_index         := 34999
         ),
         (* Канал 8: AM09, порты 15017 -> 15016 *)
         (
-            enable                 := FALSE,
+            enable                 := 0,
             signature              := 16#39304D41,  (* AM09 *)
             local_port             := 15017,
             remote_port            := 15016,
-            max_packet_bytes_limit := DWORD#1472,
+            max_packet_bytes_limit := 1472,
             period_ms              := 2000,
-            start_send             := FALSE,
-            udp_data_start_index       := DWORD#0,
-            udp_data_end_index         := DWORD#34999
+            start_send             := 0,
+            udp_data_start_index       := 0,
+            udp_data_end_index         := 34999
         ),
         (* Канал 9: AM10, порты 15019 -> 15018 *)
         (
-            enable                 := FALSE,
+            enable                 := 0,
             signature              := 16#30314D41,  (* AM10 *)
             local_port             := 15019,
             remote_port            := 15018,
-            max_packet_bytes_limit := DWORD#1472,
+            max_packet_bytes_limit := 1472,
             period_ms              := 2000,
-            start_send             := FALSE,
-            udp_data_start_index       := DWORD#0,
-            udp_data_end_index         := DWORD#34999
+            start_send             := 0,
+            udp_data_start_index       := 0,
+            udp_data_end_index         := 34999
         )
     ];
 
     (* Состояние и диагностика каналов *)
     udp_state : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastState;
 END_VAR
+
+
 
 

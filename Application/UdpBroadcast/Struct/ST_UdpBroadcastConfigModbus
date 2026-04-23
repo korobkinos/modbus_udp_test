@@ -2,7 +2,7 @@
 (*
   Структура настроек одного UDP-канала в формате Holding Registers (Modbus).
   Поля подобраны так, чтобы карта была стабильной и с фиксированным шагом.
-  Размер структуры: 24 регистра (WORD).
+  Размер структуры: 16 регистров (WORD).
 *)
 TYPE ST_UdpBroadcastConfigModbus :
 STRUCT
@@ -10,15 +10,15 @@ STRUCT
     signature              : DWORD;  (* Идентификатор пакета, 2 регистра *)
     local_port             : WORD;   (* Локальный UDP-порт *)
     remote_port            : WORD;   (* Удаленный UDP-порт *)
-    max_packet_bytes_limit : DWORD;  (* Лимит размера UDP-пакета, байт, 2 регистра *)
+    max_packet_bytes_limit : WORD;   (* Лимит размера UDP-пакета, байт *)
     period_ms              : WORD;   (* Период цикла, миллисекунды *)
     start_send             : WORD;   (* 0/1, ручной запуск цикла по фронту *)
-    udp_data_start_index   : DWORD;  (* Начальный индекс данных, 2 регистра *)
-    udp_data_end_index     : DWORD;  (* Конечный индекс данных, 2 регистра *)
+    udp_data_start_index   : WORD;   (* Начальный индекс данных *)
+    udp_data_end_index     : WORD;   (* Конечный индекс данных *)
     packet_type            : WORD;   (* Тип пакета в заголовке *)
     version                : WORD;   (* Версия протокола в заголовке *)
     payload_endianness     : WORD;   (* 0=little, 1=swap bytes *)
     inter_packet_delay_ms  : WORD;   (* Пауза между пакетами внутри цикла, мс *)
-    reserved               : ARRAY[0..6] OF WORD; (* Резерв до 24 регистров *)
+    reserved               : ARRAY[0..1] OF WORD; (* Резерв до 16 регистров *)
 END_STRUCT
 END_TYPE

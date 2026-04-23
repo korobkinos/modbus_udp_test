@@ -1,7 +1,7 @@
 ﻿{attribute 'pack_mode' := '1'}
 (*
   Состояние и диагностика одного UDP-канала в формате Holding Registers (Modbus).
-  Размер структуры: 48 регистров (WORD).
+  Размер структуры: 32 регистра (WORD).
 *)
 TYPE ST_UdpBroadcastStateModbus :
 STRUCT
@@ -10,15 +10,15 @@ STRUCT
     error                          : WORD;   (* 0 = ошибок нет, 1 = есть ошибка *)
     error_id                       : WORD;   (* Код ошибки FB *)
 
-    sequence_id                    : UDINT;  (* Номер цикла, 2 регистра *)
+    sequence_id                    : WORD;   (* Номер цикла, младшее WORD *)
     packet_index                   : WORD;   (* Индекс текущего пакета *)
     packet_count                   : WORD;   (* Кол-во пакетов в цикле *)
-    source_data_words              : UDINT;  (* Длина входного массива, 2 регистра *)
-    effective_data_start_index     : UDINT;  (* Фактический старт, 2 регистра *)
-    effective_data_end_index       : UDINT;  (* Фактический конец, 2 регистра *)
-    effective_data_words           : UDINT;  (* Фактическое кол-во слов, 2 регистра *)
-    send_count                     : UDINT;  (* Счетчик отправленных пакетов, 2 регистра *)
-    last_word_index                : UDINT;  (* Индекс первого слова в последнем пакете, 2 регистра *)
+    source_data_words              : WORD;   (* Длина входного массива, WORD *)
+    effective_data_start_index     : WORD;   (* Фактический старт, WORD *)
+    effective_data_end_index       : WORD;   (* Фактический конец, WORD *)
+    effective_data_words           : WORD;   (* Фактическое кол-во слов, WORD *)
+    send_count                     : WORD;   (* Счетчик отправленных пакетов, младшее WORD *)
+    last_word_index                : WORD;   (* Индекс первого слова в последнем пакете, WORD *)
     last_word_count                : WORD;   (* Кол-во слов в последнем пакете *)
     cycle_done                     : WORD;   (* 0 = цикл не завершен, 1 = цикл передачи завершен *)
 
@@ -32,13 +32,13 @@ STRUCT
     diag_send_busy                 : WORD;   (* 0 = не занят, 1 = занят (поле зарезервировано) *)
     diag_send_error                : WORD;   (* 0 = ошибка Send отсутствует, 1 = есть ошибка Send *)
     diag_send_error_id             : WORD;   (* Код ошибки send *)
-    diag_send_count                : UDINT;  (* Отправлено байт, 2 регистра *)
-    diag_send_length               : UDINT;  (* Запрошено байт, 2 регистра *)
+    diag_send_count                : WORD;   (* Отправлено байт, младшее WORD *)
+    diag_send_length               : WORD;   (* Запрошено байт, младшее WORD *)
     diag_words_per_packet_limit    : WORD;   (* Лимит слов на пакет *)
-    diag_effective_packet_bytes_limit : UDINT; (* Лимит пакета, 2 регистра *)
+    diag_effective_packet_bytes_limit : WORD; (* Лимит пакета, WORD *)
     diag_local_init_error          : WORD;   (* Код ошибки local ip init *)
     diag_remote_init_error         : WORD;   (* Код ошибки remote ip init *)
 
-    reserved                       : ARRAY[0..6] OF WORD; (* Резерв до 48 регистров *)
+    reserved                       : ARRAY[0..0] OF WORD; (* Резерв до 32 регистров *)
 END_STRUCT
 END_TYPE

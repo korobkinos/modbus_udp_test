@@ -27,13 +27,13 @@ END_IF
 (* Однократная загрузка дефолтов из udp_cfg в карту регистров Modbus (%MW0...) *)
 IF NOT cfgInitDone THEN
     FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
-        udp_channel_modbus[ch].cfg.enable := BOOL_TO_WORD(udp_cfg[ch].enable);
+        udp_channel_modbus[ch].cfg.enable := udp_cfg[ch].enable;
         udp_channel_modbus[ch].cfg.signature := udp_cfg[ch].signature;
-        udp_channel_modbus[ch].cfg.local_port := UINT_TO_WORD(udp_cfg[ch].local_port);
-        udp_channel_modbus[ch].cfg.remote_port := UINT_TO_WORD(udp_cfg[ch].remote_port);
+        udp_channel_modbus[ch].cfg.local_port := udp_cfg[ch].local_port;
+        udp_channel_modbus[ch].cfg.remote_port := udp_cfg[ch].remote_port;
         udp_channel_modbus[ch].cfg.max_packet_bytes_limit := udp_cfg[ch].max_packet_bytes_limit;
         udp_channel_modbus[ch].cfg.period_ms := udp_cfg[ch].period_ms;
-        udp_channel_modbus[ch].cfg.start_send := BOOL_TO_WORD(udp_cfg[ch].start_send);
+        udp_channel_modbus[ch].cfg.start_send := udp_cfg[ch].start_send;
         udp_channel_modbus[ch].cfg.udp_data_start_index := udp_cfg[ch].udp_data_start_index;
         udp_channel_modbus[ch].cfg.udp_data_end_index := udp_cfg[ch].udp_data_end_index;
         udp_channel_modbus[ch].cfg.packet_type := udp_cfg[ch].header_packet_type;
@@ -42,11 +42,6 @@ IF NOT cfgInitDone THEN
         udp_channel_modbus[ch].cfg.inter_packet_delay_ms := udp_cfg[ch].inter_packet_delay_ms;
         udp_channel_modbus[ch].cfg.reserved[0] := 0;
         udp_channel_modbus[ch].cfg.reserved[1] := 0;
-        udp_channel_modbus[ch].cfg.reserved[2] := 0;
-        udp_channel_modbus[ch].cfg.reserved[3] := 0;
-        udp_channel_modbus[ch].cfg.reserved[4] := 0;
-        udp_channel_modbus[ch].cfg.reserved[5] := 0;
-        udp_channel_modbus[ch].cfg.reserved[6] := 0;
     END_FOR
     cfgInitDone := TRUE;
 END_IF
@@ -57,13 +52,13 @@ END_IF
 // ============================================================
 FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
     (* Актуализируем рабочие настройки из Modbus-карты регистров *)
-    udp_cfg[ch].enable := WORD_TO_BOOL(udp_channel_modbus[ch].cfg.enable);
+    udp_cfg[ch].enable := udp_channel_modbus[ch].cfg.enable;
     udp_cfg[ch].signature := udp_channel_modbus[ch].cfg.signature;
-    udp_cfg[ch].local_port := WORD_TO_UINT(udp_channel_modbus[ch].cfg.local_port);
-    udp_cfg[ch].remote_port := WORD_TO_UINT(udp_channel_modbus[ch].cfg.remote_port);
+    udp_cfg[ch].local_port := udp_channel_modbus[ch].cfg.local_port;
+    udp_cfg[ch].remote_port := udp_channel_modbus[ch].cfg.remote_port;
     udp_cfg[ch].max_packet_bytes_limit := udp_channel_modbus[ch].cfg.max_packet_bytes_limit;
     udp_cfg[ch].period_ms := udp_channel_modbus[ch].cfg.period_ms;
-    udp_cfg[ch].start_send := WORD_TO_BOOL(udp_channel_modbus[ch].cfg.start_send);
+    udp_cfg[ch].start_send := udp_channel_modbus[ch].cfg.start_send;
     udp_cfg[ch].udp_data_start_index := udp_channel_modbus[ch].cfg.udp_data_start_index;
     udp_cfg[ch].udp_data_end_index := udp_channel_modbus[ch].cfg.udp_data_end_index;
     udp_cfg[ch].header_packet_type := udp_channel_modbus[ch].cfg.packet_type;
@@ -72,21 +67,21 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
     udp_cfg[ch].inter_packet_delay_ms := udp_channel_modbus[ch].cfg.inter_packet_delay_ms;
 
     UdpBroadcast[ch](
-        Enable      := udp_common.enable_all AND udp_cfg[ch].enable,
+        Enable      := udp_common.enable_all AND WORD_TO_BOOL(udp_cfg[ch].enable),
         Signature   := udp_cfg[ch].signature,
         LocalIp     := udp_common.local_ip,
         BroadcastIp := udp_common.broadcast_ip,
-        LocalPort   := udp_cfg[ch].local_port,
-        RemotePort  := udp_cfg[ch].remote_port,
-        MaxPacketBytesLimit := DWORD_TO_UDINT(udp_cfg[ch].max_packet_bytes_limit),
+        LocalPort   := WORD_TO_UINT(udp_cfg[ch].local_port),
+        RemotePort  := WORD_TO_UINT(udp_cfg[ch].remote_port),
+        MaxPacketBytesLimit := WORD_TO_UDINT(udp_cfg[ch].max_packet_bytes_limit),
         Period      := UDINT_TO_TIME(WORD_TO_UDINT(udp_cfg[ch].period_ms)),
-        StartSend   := udp_cfg[ch].start_send,
+        StartSend   := WORD_TO_BOOL(udp_cfg[ch].start_send),
         PacketType  := udp_cfg[ch].header_packet_type,
         Version     := udp_cfg[ch].header_version,
         PayloadEndianness := udp_cfg[ch].payload_endianness,
         InterPacketDelay := UDINT_TO_TIME(WORD_TO_UDINT(udp_cfg[ch].inter_packet_delay_ms)),
-        DataStartIndex := DWORD_TO_UDINT(udp_cfg[ch].udp_data_start_index),
-        DataEndIndex   := DWORD_TO_UDINT(udp_cfg[ch].udp_data_end_index),
+        DataStartIndex := WORD_TO_UDINT(udp_cfg[ch].udp_data_start_index),
+        DataEndIndex   := WORD_TO_UDINT(udp_cfg[ch].udp_data_end_index),
         Data := DataArray,
 
         Active        => udp_state[ch].active,
@@ -128,15 +123,15 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
     udp_channel_modbus[ch].state.busy := BOOL_TO_WORD(udp_state[ch].busy);
     udp_channel_modbus[ch].state.error := BOOL_TO_WORD(udp_state[ch].error);
     udp_channel_modbus[ch].state.error_id := TO_WORD(udp_state[ch].error_id);
-    udp_channel_modbus[ch].state.sequence_id := udp_state[ch].sequence_id;
+    udp_channel_modbus[ch].state.sequence_id := UDINT_TO_WORD(udp_state[ch].sequence_id);
     udp_channel_modbus[ch].state.packet_index := udp_state[ch].packet_index;
     udp_channel_modbus[ch].state.packet_count := udp_state[ch].packet_count;
-    udp_channel_modbus[ch].state.source_data_words := udp_state[ch].source_data_words;
-    udp_channel_modbus[ch].state.effective_data_start_index := udp_state[ch].effective_data_start_index;
-    udp_channel_modbus[ch].state.effective_data_end_index := udp_state[ch].effective_data_end_index;
-    udp_channel_modbus[ch].state.effective_data_words := udp_state[ch].effective_data_words;
-    udp_channel_modbus[ch].state.send_count := udp_state[ch].send_count;
-    udp_channel_modbus[ch].state.last_word_index := udp_state[ch].last_word_index;
+    udp_channel_modbus[ch].state.source_data_words := UDINT_TO_WORD(udp_state[ch].source_data_words);
+    udp_channel_modbus[ch].state.effective_data_start_index := UDINT_TO_WORD(udp_state[ch].effective_data_start_index);
+    udp_channel_modbus[ch].state.effective_data_end_index := UDINT_TO_WORD(udp_state[ch].effective_data_end_index);
+    udp_channel_modbus[ch].state.effective_data_words := UDINT_TO_WORD(udp_state[ch].effective_data_words);
+    udp_channel_modbus[ch].state.send_count := UDINT_TO_WORD(udp_state[ch].send_count);
+    udp_channel_modbus[ch].state.last_word_index := UDINT_TO_WORD(udp_state[ch].last_word_index);
     udp_channel_modbus[ch].state.last_word_count := udp_state[ch].last_word_count;
     udp_channel_modbus[ch].state.cycle_done := BOOL_TO_WORD(udp_state[ch].cycle_done);
     udp_channel_modbus[ch].state.diag_state := UINT_TO_WORD(udp_state[ch].diag_state);
@@ -149,10 +144,10 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
     udp_channel_modbus[ch].state.diag_send_busy := BOOL_TO_WORD(udp_state[ch].diag_send_busy);
     udp_channel_modbus[ch].state.diag_send_error := BOOL_TO_WORD(udp_state[ch].diag_send_error);
     udp_channel_modbus[ch].state.diag_send_error_id := TO_WORD(udp_state[ch].diag_send_error_id);
-    udp_channel_modbus[ch].state.diag_send_count := udp_state[ch].diag_send_count;
-    udp_channel_modbus[ch].state.diag_send_length := udp_state[ch].diag_send_length;
+    udp_channel_modbus[ch].state.diag_send_count := UDINT_TO_WORD(udp_state[ch].diag_send_count);
+    udp_channel_modbus[ch].state.diag_send_length := UDINT_TO_WORD(udp_state[ch].diag_send_length);
     udp_channel_modbus[ch].state.diag_words_per_packet_limit := UINT_TO_WORD(udp_state[ch].diag_words_per_packet_limit);
-    udp_channel_modbus[ch].state.diag_effective_packet_bytes_limit := udp_state[ch].diag_effective_packet_bytes_limit;
+    udp_channel_modbus[ch].state.diag_effective_packet_bytes_limit := UDINT_TO_WORD(udp_state[ch].diag_effective_packet_bytes_limit);
     udp_channel_modbus[ch].state.diag_local_init_error := TO_WORD(udp_state[ch].diag_local_init_error);
     udp_channel_modbus[ch].state.diag_remote_init_error := TO_WORD(udp_state[ch].diag_remote_init_error);
 END_FOR
