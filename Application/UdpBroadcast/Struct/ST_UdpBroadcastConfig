@@ -8,14 +8,14 @@ STRUCT
     signature              : DWORD := 16#534B4D41;         (* Сигнатура заголовка, по умолчанию 'AMKS' *)
     local_port             : UINT  := 15001;               (* Локальный UDP-порт канала *)
     remote_port            : UINT  := 15000;               (* Удаленный UDP-порт канала *)
-    max_packet_bytes_limit : UDINT := UDINT#1472;          (* Лимит размера UDP-пакета, байт. 0 = авто (до 65507) *)
+    max_packet_bytes_limit : DWORD := DWORD#1472;          (* Лимит размера UDP-пакета, байт. 0 = авто (до 65507) *)
     period_ms              : WORD  := 2000;                (* Период автозапуска цикла, миллисекунды *)
     start_send             : BOOL  := FALSE;               (* Ручной запуск цикла по фронту *)
     header_packet_type     : WORD  := 1;                   (* Тип пакета в заголовке *)
     header_version         : WORD  := 1;                   (* Версия протокола в заголовке *)
     payload_endianness     : WORD  := 0;                   (* Порядок байт в WORD payload: 0=little, 1=swap bytes *)
     inter_packet_delay_ms  : WORD  := 0;                   (* Пауза между пакетами внутри цикла, мс *)
-    udp_data_start_index       : UDINT := 0;                   (* Начальный индекс данных в массиве Data *)
-    udp_data_end_index         : UDINT := 34999;               (* Конечный индекс данных в массиве Data *)
+    udp_data_start_index       : DWORD := DWORD#0;             (* Начальный индекс данных в массиве Data *)
+    udp_data_end_index         : DWORD := DWORD#34999;         (* Конечный индекс данных в массиве Data *)
 END_STRUCT
 END_TYPE

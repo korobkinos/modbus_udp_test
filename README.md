@@ -54,11 +54,11 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
         BroadcastIp := udp_common.broadcast_ip,
         LocalPort   := udp_cfg[ch].local_port,
         RemotePort  := udp_cfg[ch].remote_port,
-        MaxPacketBytesLimit := udp_cfg[ch].max_packet_bytes_limit,
+        MaxPacketBytesLimit := DWORD_TO_UDINT(udp_cfg[ch].max_packet_bytes_limit),
         Period      := UDINT_TO_TIME(WORD_TO_UDINT(udp_cfg[ch].period_ms)),
         StartSend   := udp_cfg[ch].start_send,
-        DataStartIndex := udp_cfg[ch].udp_data_start_index,
-        DataEndIndex   := udp_cfg[ch].udp_data_end_index,
+        DataStartIndex := DWORD_TO_UDINT(udp_cfg[ch].udp_data_start_index),
+        DataEndIndex   := DWORD_TO_UDINT(udp_cfg[ch].udp_data_end_index),
         Data := TxData
     );
 END_FOR
@@ -172,11 +172,11 @@ FB автоматически нормализует границы:
 | `MW1..MW2` | `signature` | `DWORD` | `R/W` | Сигнатура заголовка. 4 ASCII-символа в hex, например `AM01` = `16#31304D41`. |
 | `MW3` | `local_port` | `WORD` | `R/W` | Локальный UDP-порт ПЛК (порт источника). |
 | `MW4` | `remote_port` | `WORD` | `R/W` | UDP-порт назначения на приемнике. |
-| `MW5..MW6` | `max_packet_bytes_limit` | `UDINT` | `R/W` | Лимит размера UDP-пакета, байт. `0` = авто до `65507`. Для Ethernet обычно `1472`. |
+| `MW5..MW6` | `max_packet_bytes_limit` | `DWORD` | `R/W` | Лимит размера UDP-пакета, байт. `0` = авто до `65507`. Для Ethernet обычно `1472`. |
 | `MW7` | `period_ms` | `WORD` | `R/W` | Период автозапуска цикла отправки, мс. Пример: `2000` = 2 сек. |
 | `MW8` | `start_send` | `WORD` | `R/W` | Ручной старт цикла по фронту. Импульс: записать `1`, затем вернуть `0`. |
-| `MW9..MW10` | `udp_data_start_index` | `UDINT` | `R/W` | Начальный индекс в `DataArray[0..34999]`. |
-| `MW11..MW12` | `udp_data_end_index` | `UDINT` | `R/W` | Конечный индекс в `DataArray[0..34999]`. |
+| `MW9..MW10` | `udp_data_start_index` | `DWORD` | `R/W` | Начальный индекс в `DataArray[0..34999]`. |
+| `MW11..MW12` | `udp_data_end_index` | `DWORD` | `R/W` | Конечный индекс в `DataArray[0..34999]`. |
 | `MW13` | `packet_type` | `WORD` | `R/W` | Поле `PacketType` в заголовке AMxx. |
 | `MW14` | `version` | `WORD` | `R/W` | Поле `Version` в заголовке AMxx. |
 | `MW15` | `payload_endianness` | `WORD` | `R/W` | Порядок байт WORD в payload: `0` = native/little, `1` = swap bytes. |
@@ -233,6 +233,7 @@ FB автоматически нормализует границы:
 - `10` - `sendLen` больше лимита пакета
 
 ### Важные примечания для SCADA
+- В блоке настроек `cfg` все 32-битные параметры имеют тип `DWORD` (2 регистра).
 - Все поля `UDINT/DWORD` занимают 2 регистра `WORD`.
 - Порядок слов для 32-битных значений зависит от настройки клиента SCADA (`word order`, `endianness`).
 - `start_send` нужно использовать как импульсный бит (не держать постоянно в `1`).
