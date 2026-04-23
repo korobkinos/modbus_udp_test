@@ -17,8 +17,21 @@ VAR_GLOBAL
         broadcast_ip := '192.168.4.255'
     );
 
-    (* Индивидуальные настройки каналов *)
+    (*
+      Индивидуальные настройки каналов.
+      Пояснение полей в каждом элементе:
+      - enable: включение конкретного канала
+      - signature: 4-байтный идентификатор пакетов канала (AM01..AM10)
+      - local_port: локальный порт ПЛК (порт источника)
+      - remote_port: удаленный порт приемника (порт назначения)
+      - max_packet_bytes_limit: лимит UDP-пакета, байт (0 = авто до 65507)
+      - period_ms: период автозапуска цикла, мс
+      - start_send: ручной запуск цикла по фронту
+      - udp_data_start_index: старт индекса в общем массиве DataArray[0..34999]
+      - udp_data_end_index: конец индекса в общем массиве DataArray[0..34999]
+    *)
     udp_cfg : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastConfig := [
+        (* Канал 0: AM01, порты 15001 -> 15000 *)
         (
             enable                 := TRUE,
             signature              := 16#31304D41,  (* AM01 *)
@@ -30,6 +43,7 @@ VAR_GLOBAL
             udp_data_start_index       := 0,
             udp_data_end_index         := 34999
         ),
+        (* Канал 1: AM02, порты 15003 -> 15002 *)
         (
             enable                 := TRUE,
             signature              := 16#32304D41,  (* AM02 *)
@@ -41,6 +55,7 @@ VAR_GLOBAL
             udp_data_start_index       := 0,
             udp_data_end_index         := 34999
         ),
+        (* Канал 2: AM03, порты 15005 -> 15004 *)
         (
             enable                 := TRUE,
             signature              := 16#33304D41,  (* AM03 *)
@@ -52,6 +67,7 @@ VAR_GLOBAL
             udp_data_start_index       := 0,
             udp_data_end_index         := 34999
         ),
+        (* Канал 3: AM04, порты 15007 -> 15006 *)
         (
             enable                 := FALSE,
             signature              := 16#34304D41,  (* AM04 *)
@@ -63,6 +79,7 @@ VAR_GLOBAL
             udp_data_start_index       := 0,
             udp_data_end_index         := 34999
         ),
+        (* Канал 4: AM05, порты 15009 -> 15008 *)
         (
             enable                 := FALSE,
             signature              := 16#35304D41,  (* AM05 *)
@@ -74,6 +91,7 @@ VAR_GLOBAL
             udp_data_start_index       := 0,
             udp_data_end_index         := 34999
         ),
+        (* Канал 5: AM06, порты 15011 -> 15010 *)
         (
             enable                 := FALSE,
             signature              := 16#36304D41,  (* AM06 *)
@@ -85,6 +103,7 @@ VAR_GLOBAL
             udp_data_start_index       := 0,
             udp_data_end_index         := 34999
         ),
+        (* Канал 6: AM07, порты 15013 -> 15012 *)
         (
             enable                 := FALSE,
             signature              := 16#37304D41,  (* AM07 *)
@@ -96,6 +115,7 @@ VAR_GLOBAL
             udp_data_start_index       := 0,
             udp_data_end_index         := 34999
         ),
+        (* Канал 7: AM08, порты 15015 -> 15014 *)
         (
             enable                 := FALSE,
             signature              := 16#38304D41,  (* AM08 *)
@@ -107,6 +127,7 @@ VAR_GLOBAL
             udp_data_start_index       := 0,
             udp_data_end_index         := 34999
         ),
+        (* Канал 8: AM09, порты 15017 -> 15016 *)
         (
             enable                 := FALSE,
             signature              := 16#39304D41,  (* AM09 *)
@@ -118,6 +139,7 @@ VAR_GLOBAL
             udp_data_start_index       := 0,
             udp_data_end_index         := 34999
         ),
+        (* Канал 9: AM10, порты 15019 -> 15018 *)
         (
             enable                 := FALSE,
             signature              := 16#30314D41,  (* AM10 *)
