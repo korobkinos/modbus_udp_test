@@ -15,7 +15,7 @@ VAR_GLOBAL
     udp_max_packet_bytes_limit : UDINT := UDINT#1472;        (* Ограничение размера UDP-пакета, байт. 0 = авто (до 65507) *)
     udp_local_port   : UINT := 15001;
     udp_remote_port  : UINT := 15000;
-    udp_period       : TIME := T#2S;
+    udp_period       : WORD := 2000;                         (* Период автозапуска цикла, миллисекунды *)
     udp_start_send   : BOOL := FALSE;                        (* Ручной запуск цикла по фронту *)
 
     udp_sequence_id  : UDINT;                                (* Номер текущего цикла передачи *)

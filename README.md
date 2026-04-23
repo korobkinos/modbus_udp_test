@@ -55,7 +55,7 @@ UdpTx(
     LocalPort   := 15001,
     RemotePort  := 15000,
     MaxPacketBytesLimit := 1472,
-    Period      := T#2S,
+    Period      := UDINT_TO_TIME(WORD_TO_UDINT(udp_period)),
     StartSend   := udp_start_send,
     DataStartIndex := 0,
     DataEndIndex   := 34999,
@@ -71,7 +71,7 @@ UdpTx(
 - `LocalPort` - локальный UDP порт
 - `RemotePort` - удаленный UDP порт
 - `MaxPacketBytesLimit` - лимит размера UDP datagram, `0` = авто до `65507`
-- `Period` - период автозапуска полного цикла передачи
+- `Period` - период автозапуска полного цикла передачи (`TIME`)
 - `StartSend` - ручной старт цикла по фронту
 - `DataStartIndex` - старт индекса в массиве `Data`
 - `DataEndIndex` - конец индекса в массиве `Data`
@@ -121,6 +121,7 @@ FB автоматически нормализует границы:
 - `udp_signature`
 - `udp_data_start_index`
 - `udp_data_end_index`
+- `udp_period` (мс, `WORD`, например `2000`)
 - `udp_max_packet_bytes_limit`
 - `udp_start_send`
 - `udp_effective_data_start_index`

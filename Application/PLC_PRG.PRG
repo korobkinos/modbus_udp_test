@@ -34,7 +34,7 @@ UdpBroadcast(
     LocalPort   := udp_local_port,
     RemotePort  := udp_remote_port,
     MaxPacketBytesLimit := udp_max_packet_bytes_limit,
-    Period      := udp_period,
+    Period      := UDINT_TO_TIME(WORD_TO_UDINT(udp_period)),
     StartSend   := udp_start_send,
     DataStartIndex := udp_data_start_index,
     DataEndIndex   := udp_data_end_index,
