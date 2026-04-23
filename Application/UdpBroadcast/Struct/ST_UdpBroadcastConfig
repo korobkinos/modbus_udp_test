@@ -15,8 +15,8 @@ STRUCT
     header_version         : WORD  := 1;                   (* Версия протокола в заголовке *)
     payload_endianness     : WORD  := 0;                   (* Порядок байт в WORD payload: 0=little, 1=swap bytes *)
     inter_packet_delay_ms  : WORD  := 0;                   (* Пауза между пакетами внутри цикла, мс *)
-    udp_data_start_index   : WORD  := 0;                   (* Начальный индекс данных в массиве Data *)
-    udp_data_end_index     : WORD  := 34999;               (* Конечный индекс данных в массиве Data *)
+    udp_data_start_index     : WORD  := 0;                 (* Начальный индекс данных в массиве Data *)
+    udp_data_count_register  : WORD  := 35000;             (* Количество WORD для отправки, начиная с udp_data_start_index *)
 END_STRUCT
 END_TYPE
 

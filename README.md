@@ -7,7 +7,7 @@
 Ключевая особенность:
 - массив данных передается через интерфейс FB: `VAR_IN_OUT Data : ARRAY[*] OF WORD`
 - можно подключить массив любой длины
-- внутри FB задается диапазон отправки `DataStartIndex..DataEndIndex`
+- внутри FB задается диапазон отправки через `DataStartIndex` и `DataCountRegister`
 
 ## Состав
 - `Application/UdpBroadcast/Functions/FB_UdpWordBroadcast` - основной FB передачи
@@ -66,8 +66,8 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
         MaxPacketBytesLimit := WORD_TO_UDINT(udp_cfg[ch].max_packet_bytes_limit),
         Period      := UDINT_TO_TIME(WORD_TO_UDINT(udp_cfg[ch].period_ms)),
         StartSend   := startSendPulse,
-        DataStartIndex := WORD_TO_UDINT(udp_cfg[ch].udp_data_start_index),
-        DataEndIndex   := WORD_TO_UDINT(udp_cfg[ch].udp_data_end_index),
+        DataStartIndex    := WORD_TO_UDINT(udp_cfg[ch].udp_data_start_index),
+        DataCountRegister := WORD_TO_UDINT(udp_cfg[ch].udp_data_count_register),
         Data := TxData
     );
 END_FOR
@@ -87,7 +87,7 @@ END_FOR
 - `PayloadEndianness` - порядок байт в WORD payload (`0=little`, `1=swap bytes`)
 - `InterPacketDelay` - пауза между пакетами внутри цикла
 - `DataStartIndex` - старт индекса в массиве `Data`
-- `DataEndIndex` - конец индекса в массиве `Data`
+- `DataCountRegister` - количество WORD для отправки, начиная с `DataStartIndex`
 - `Data` - массив `ARRAY[*] OF WORD` через `VAR_IN_OUT`
 
 ## Режимы запуска через cfg
@@ -119,13 +119,13 @@ END_FOR
 - `DiagWordsPerPacketLimit`, `DiagEffectivePacketBytesLimit`
 - `DiagLocalAddrInitError`, `DiagRemoteAddrInitError`
 
-## Правила диапазона DataStartIndex/DataEndIndex
+## Правила диапазона DataStartIndex/DataCountRegister
 FB автоматически нормализует границы:
 - если `DataStartIndex` больше длины массива, старт прижимается к последнему элементу
-- если `DataEndIndex` больше длины массива, конец прижимается к последнему элементу
-- если `DataEndIndex < DataStartIndex`, конец становится равным старту
+- если `DataCountRegister = 0`, это ошибка конфигурации
+- если `DataCountRegister` выходит за конец массива, количество автоматически прижимается к доступной длине
 
-Таким образом FB всегда отправляет валидный диапазон минимум из 1 слова.
+Таким образом FB отправляет валидный диапазон по старту и количеству WORD.
 
 ## Ограничения
 - Максимальный payload буфер FB: `32753 WORD`
@@ -134,7 +134,7 @@ FB автоматически нормализует границы:
 
 ## Рекомендации по настройке
 - Для Ethernet MTU 1500 обычно безопасный лимит `MaxPacketBytesLimit = 1472`
-- При больших массивах начинайте с небольшого диапазона `DataStartIndex..DataEndIndex`
+- При больших массивах начинайте с небольшого количества `DataCountRegister`
 
 ## Пример настроек из GVL
 В `GVL_UDP` данные сгруппированы в структуры:
@@ -187,7 +187,7 @@ FB автоматически нормализует границы:
 | `MW6` | `period_ms` | `WORD` | `R/W` | Период автозапуска цикла отправки, мс. Пример: `2000` = 2 сек. |
 | `MW7` | `start_send` | `WORD` | `R/W` | Ручной старт цикла по фронту `0->1`. Импульс: записать `1`, затем вернуть `0`. Работает и при `enable = 0`. |
 | `MW8` | `udp_data_start_index` | `WORD` | `R/W` | Начальный индекс в `DataArray[0..34999]`. |
-| `MW9` | `udp_data_end_index` | `WORD` | `R/W` | Конечный индекс в `DataArray[0..34999]`. |
+| `MW9` | `udp_data_count_register` | `WORD` | `R/W` | Количество WORD для отправки, начиная с `udp_data_start_index`. |
 | `MW10` | `packet_type` | `WORD` | `R/W` | Поле `PacketType` в заголовке AMxx. |
 | `MW11` | `version` | `WORD` | `R/W` | Поле `Version` в заголовке AMxx. |
 | `MW12` | `payload_endianness` | `WORD` | `R/W` | Порядок байт WORD в payload: `0` = native/little, `1` = swap bytes. |
@@ -237,7 +237,7 @@ FB автоматически нормализует границы:
 - `3` - LocalIp = `0.0.0.0`
 - `4` - ошибка `UDP_Peer`
 - `5` - ошибка границ массива `Data`
-- `6` - ошибка диапазона `DataStartIndex..DataEndIndex`
+- `6` - ошибка диапазона `DataStartIndex/DataCountRegister`
 - `7` - слишком большой диапазон (переполнение по числу пакетов)
 - `8` - ошибка `Send`
 - `9` - ошибка расчета лимита пакета
@@ -275,3 +275,4 @@ FB автоматически нормализует границы:
 - Для внутренних 32-битных счетчиков в `state` передается младшее слово (`LOW WORD`).
 - `start_send` нужно использовать как импульсный бит (не держать постоянно в `1`).
 - Поля `reserved` лучше не использовать под теги, держать нулевыми.
+

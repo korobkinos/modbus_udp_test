@@ -2,7 +2,7 @@
   Функциональный блок широковещательной UDP-передачи массива WORD.
   Использует библиотеку Net Base Services (NBS).
   Принимает входной массив через VAR_IN_OUT Data : ARRAY[*] OF WORD.
-  Диапазон отправки задается индексами DataStartIndex/DataEndIndex.
+  Диапазон отправки задается стартовым индексом и количеством WORD: DataStartIndex/DataCountRegister.
   Данные автоматически разбиваются на UDP-пакеты по ограничению размера.
 *)
 {attribute 'no_assign'}
@@ -21,8 +21,8 @@ VAR_INPUT
     Version     : WORD := 1;     (* Версия протокола в заголовке *)
     PayloadEndianness : WORD := 0;    (* 0=little, 1=swap bytes in WORD *)
     InterPacketDelay : TIME := T#0MS; (* Пауза между пакетами внутри цикла *)
-    DataStartIndex : UDINT := 0;                 (* Начальный индекс отправки в пределах входного массива *)
-    DataEndIndex   : UDINT := UDINT#16#FFFFFFFF; (* Конечный индекс отправки в пределах входного массива *)
+    DataStartIndex    : UDINT := 0; (* Начальный индекс отправки в пределах входного массива *)
+    DataCountRegister : UDINT := 1; (* Количество WORD для отправки, начиная с DataStartIndex *)
 END_VAR
 VAR_IN_OUT
     Data : ARRAY[*] OF WORD;     (* Входной массив данных произвольной длины *)
@@ -46,7 +46,7 @@ VAR_OUTPUT
 
     (* Диагностика *)
     DiagState                : UINT;       (* Текущее состояние автомата *)
-    DiagErrorSource          : UINT;       (* Источник ошибки: 0-none,1-localIP,2-remoteIP,3-localIP=0.0.0.0,4-peer,5-array,6-range,7-words>limit,8-send,9-maxPacketCalc,10-sendLen>udpMax *)
+    DiagErrorSource          : UINT;       (* Источник ошибки: 0-none,1-localIP,2-remoteIP,3-localIP=0.0.0.0,4-peer,5-array,6-range/count,7-words>limit,8-send,9-maxPacketCalc,10-sendLen>udpMax *)
     DiagPeerEnable           : BOOL;       (* Разрешение запуска peer *)
     DiagPeerActive           : BOOL;       (* Состояние peer *)
     DiagPeerError            : BOOL;       (* Ошибка peer *)
@@ -65,6 +65,7 @@ END_VAR
 VAR
     (* Константы *)
     MAX_PACKET_BYTES         : UDINT := UDINT#65507;  (* Максимальный полезный размер UDP datagram *)
+    SAFE_MTU_PACKET_BYTES    : UDINT := UDINT#1472;   (* Безопасный размер UDP-пакета без фрагментации в сети MTU 1500 *)
     MAX_PAYLOAD_WORDS_BUFFER : UINT  := UINT#32753;   (* Размер буфера payload в WORD *)
 
     (* Компоненты NBS *)
@@ -99,6 +100,7 @@ VAR
     maxWordsByUdp        : UINT;
     effectiveWordsPerPacket : UINT;
     effectiveMaxPacketBytes : UDINT;
+    requestedPacketBytesForRange : UDINT;
 
     (* Буфер пакета *)
     packetHeader : ST_UdpPacketHeader;
@@ -280,16 +282,7 @@ CASE state OF
             selectedStartIndex := SourceDataWords - 1;
         END_IF
 
-        selectedEndIndex := DataEndIndex;
-        IF selectedEndIndex >= SourceDataWords THEN
-            selectedEndIndex := SourceDataWords - 1;
-        END_IF
-
-        IF selectedEndIndex < selectedStartIndex THEN
-            selectedEndIndex := selectedStartIndex;
-        END_IF
-
-        selectedDataWords := selectedEndIndex - selectedStartIndex + UDINT#1;
+        selectedDataWords := DataCountRegister;
         IF selectedDataWords = 0 THEN
             Error := TRUE;
             ErrorId := NBS.ERROR.WRONG_PARAMETER;
@@ -298,13 +291,37 @@ CASE state OF
             RETURN;
         END_IF
 
+        IF selectedDataWords > (SourceDataWords - selectedStartIndex) THEN
+            selectedDataWords := SourceDataWords - selectedStartIndex;
+        END_IF
+
+        IF selectedDataWords = 0 THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_PARAMETER;
+            DiagErrorSource := 6;
+            state := 100;
+            RETURN;
+        END_IF
+
+        selectedEndIndex := selectedStartIndex + selectedDataWords - UDINT#1;
+
         EffectiveDataStartIndex := selectedStartIndex;
         EffectiveDataEndIndex := selectedEndIndex;
         EffectiveDataWords := selectedDataWords;
 
+        requestedPacketBytesForRange := SIZEOF(packetHeader) + (selectedDataWords * UDINT#2);
+
         effectiveMaxPacketBytes := MAX_PACKET_BYTES;
         IF (MaxPacketBytesLimit > UDINT#0) AND (MaxPacketBytesLimit < effectiveMaxPacketBytes) THEN
             effectiveMaxPacketBytes := MaxPacketBytesLimit;
+        END_IF
+
+        (* Если выбранный диапазон целиком помещается в безопасный пакет до 1472 байт,
+           не режем его на части из-за слишком малого пользовательского лимита. *)
+        IF requestedPacketBytesForRange <= SAFE_MTU_PACKET_BYTES THEN
+            IF effectiveMaxPacketBytes < requestedPacketBytesForRange THEN
+                effectiveMaxPacketBytes := requestedPacketBytesForRange;
+            END_IF
         END_IF
         DiagEffectivePacketBytesLimit := effectiveMaxPacketBytes;
 

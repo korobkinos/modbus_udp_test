@@ -38,7 +38,7 @@ IF NOT cfgInitDone THEN
         udp_channel_modbus[ch].cfg.period_ms := udp_cfg[ch].period_ms;
         udp_channel_modbus[ch].cfg.start_send := udp_cfg[ch].start_send;
         udp_channel_modbus[ch].cfg.udp_data_start_index := udp_cfg[ch].udp_data_start_index;
-        udp_channel_modbus[ch].cfg.udp_data_end_index := udp_cfg[ch].udp_data_end_index;
+        udp_channel_modbus[ch].cfg.udp_data_count_register := udp_cfg[ch].udp_data_count_register;
         udp_channel_modbus[ch].cfg.packet_type := udp_cfg[ch].header_packet_type;
         udp_channel_modbus[ch].cfg.version := udp_cfg[ch].header_version;
         udp_channel_modbus[ch].cfg.payload_endianness := udp_cfg[ch].payload_endianness;
@@ -63,7 +63,7 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
     udp_cfg[ch].period_ms := udp_channel_modbus[ch].cfg.period_ms;
     udp_cfg[ch].start_send := udp_channel_modbus[ch].cfg.start_send;
     udp_cfg[ch].udp_data_start_index := udp_channel_modbus[ch].cfg.udp_data_start_index;
-    udp_cfg[ch].udp_data_end_index := udp_channel_modbus[ch].cfg.udp_data_end_index;
+    udp_cfg[ch].udp_data_count_register := udp_channel_modbus[ch].cfg.udp_data_count_register;
     udp_cfg[ch].header_packet_type := udp_channel_modbus[ch].cfg.packet_type;
     udp_cfg[ch].header_version := udp_channel_modbus[ch].cfg.version;
     udp_cfg[ch].payload_endianness := udp_channel_modbus[ch].cfg.payload_endianness;
@@ -94,8 +94,8 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
         Version     := udp_cfg[ch].header_version,
         PayloadEndianness := udp_cfg[ch].payload_endianness,
         InterPacketDelay := UDINT_TO_TIME(WORD_TO_UDINT(udp_cfg[ch].inter_packet_delay_ms)),
-        DataStartIndex := WORD_TO_UDINT(udp_cfg[ch].udp_data_start_index),
-        DataEndIndex   := WORD_TO_UDINT(udp_cfg[ch].udp_data_end_index),
+        DataStartIndex    := WORD_TO_UDINT(udp_cfg[ch].udp_data_start_index),
+        DataCountRegister := WORD_TO_UDINT(udp_cfg[ch].udp_data_count_register),
         Data := DataArray,
 
         Active        => udp_state[ch].active,
@@ -165,3 +165,4 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
     udp_channel_modbus[ch].state.diag_local_init_error := TO_WORD(udp_state[ch].diag_local_init_error);
     udp_channel_modbus[ch].state.diag_remote_init_error := TO_WORD(udp_state[ch].diag_remote_init_error);
 END_FOR
+

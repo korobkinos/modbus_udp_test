@@ -14,7 +14,7 @@ STRUCT
     period_ms              : WORD;   (* Период цикла, миллисекунды *)
     start_send             : WORD;   (* 0/1, ручной запуск цикла по фронту 0->1 *)
     udp_data_start_index   : WORD;   (* Начальный индекс данных *)
-    udp_data_end_index     : WORD;   (* Конечный индекс данных *)
+    udp_data_count_register : WORD;  (* Количество WORD для отправки, начиная с udp_data_start_index *)
     packet_type            : WORD;   (* Тип пакета в заголовке *)
     version                : WORD;   (* Версия протокола в заголовке *)
     payload_endianness     : WORD;   (* 0=little, 1=swap bytes *)

@@ -45,7 +45,7 @@ VAR_GLOBAL
       - payload_endianness: порядок байт в WORD payload
       - inter_packet_delay_ms: пауза между пакетами внутри цикла
       - udp_data_start_index: старт индекса в общем массиве DataArray[0..34999]
-      - udp_data_end_index: конец индекса в общем массиве DataArray[0..34999]
+      - udp_data_count_register: количество WORD для отправки из общего массива DataArray, начиная с udp_data_start_index
     *)
     udp_cfg : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastConfig := [
         (* Канал 0: AM01, порты 15001 -> 15000 *)
@@ -58,7 +58,7 @@ VAR_GLOBAL
             period_ms              := 2000,
             start_send             := 0,
             udp_data_start_index       := 0,
-            udp_data_end_index         := 34999
+            udp_data_count_register         := 35000
         ),
         (* Канал 1: AM02, порты 15003 -> 15002 *)
         (
@@ -70,7 +70,7 @@ VAR_GLOBAL
             period_ms              := 2000,
             start_send             := 0,
             udp_data_start_index       := 0,
-            udp_data_end_index         := 34999
+            udp_data_count_register         := 35000
         ),
         (* Канал 2: AM03, порты 15005 -> 15004 *)
         (
@@ -82,7 +82,7 @@ VAR_GLOBAL
             period_ms              := 2000,
             start_send             := 0,
             udp_data_start_index       := 0,
-            udp_data_end_index         := 34999
+            udp_data_count_register         := 35000
         ),
         (* Канал 3: AM04, порты 15007 -> 15006 *)
         (
@@ -94,7 +94,7 @@ VAR_GLOBAL
             period_ms              := 2000,
             start_send             := 0,
             udp_data_start_index       := 0,
-            udp_data_end_index         := 34999
+            udp_data_count_register         := 35000
         ),
         (* Канал 4: AM05, порты 15009 -> 15008 *)
         (
@@ -106,7 +106,7 @@ VAR_GLOBAL
             period_ms              := 2000,
             start_send             := 0,
             udp_data_start_index       := 0,
-            udp_data_end_index         := 34999
+            udp_data_count_register         := 35000
         ),
         (* Канал 5: AM06, порты 15011 -> 15010 *)
         (
@@ -118,7 +118,7 @@ VAR_GLOBAL
             period_ms              := 2000,
             start_send             := 0,
             udp_data_start_index       := 0,
-            udp_data_end_index         := 34999
+            udp_data_count_register         := 35000
         ),
         (* Канал 6: AM07, порты 15013 -> 15012 *)
         (
@@ -130,7 +130,7 @@ VAR_GLOBAL
             period_ms              := 2000,
             start_send             := 0,
             udp_data_start_index       := 0,
-            udp_data_end_index         := 34999
+            udp_data_count_register         := 35000
         ),
         (* Канал 7: AM08, порты 15015 -> 15014 *)
         (
@@ -142,7 +142,7 @@ VAR_GLOBAL
             period_ms              := 2000,
             start_send             := 0,
             udp_data_start_index       := 0,
-            udp_data_end_index         := 34999
+            udp_data_count_register         := 35000
         ),
         (* Канал 8: AM09, порты 15017 -> 15016 *)
         (
@@ -154,7 +154,7 @@ VAR_GLOBAL
             period_ms              := 2000,
             start_send             := 0,
             udp_data_start_index       := 0,
-            udp_data_end_index         := 34999
+            udp_data_count_register         := 35000
         ),
         (* Канал 9: AM10, порты 15019 -> 15018 *)
         (
@@ -166,13 +166,15 @@ VAR_GLOBAL
             period_ms              := 2000,
             start_send             := 0,
             udp_data_start_index       := 0,
-            udp_data_end_index         := 34999
+            udp_data_count_register         := 35000
         )
     ];
 
     (* Состояние и диагностика каналов *)
     udp_state : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastState;
 END_VAR
+
+
 
 
 
