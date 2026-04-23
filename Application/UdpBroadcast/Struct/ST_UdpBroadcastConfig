@@ -4,13 +4,13 @@
 *)
 TYPE ST_UdpBroadcastConfig :
 STRUCT
-    enable                 : WORD  := 1;                    (* Включение канала: 0=выкл, 1=вкл *)
+    enable                 : WORD  := 1;                    (* Режим автозапуска: 0=только ручной start_send, 1=периодический запуск по period_ms *)
     signature              : DWORD := 16#534B4D41;         (* Сигнатура заголовка, по умолчанию 'AMKS' *)
     local_port             : WORD  := 15001;               (* Локальный UDP-порт канала *)
     remote_port            : WORD  := 15000;               (* Удаленный UDP-порт канала *)
     max_packet_bytes_limit : WORD  := 1472;                (* Лимит размера UDP-пакета, байт. 0 = авто (до 65507) *)
     period_ms              : WORD  := 2000;                (* Период автозапуска цикла, миллисекунды *)
-    start_send             : WORD  := 0;                   (* Ручной запуск цикла по фронту: 0/1 *)
+    start_send             : WORD  := 0;                    (* Ручной запуск цикла по фронту 0->1: 0/1 *)
     header_packet_type     : WORD  := 1;                   (* Тип пакета в заголовке *)
     header_version         : WORD  := 1;                   (* Версия протокола в заголовке *)
     payload_endianness     : WORD  := 0;                   (* Порядок байт в WORD payload: 0=little, 1=swap bytes *)

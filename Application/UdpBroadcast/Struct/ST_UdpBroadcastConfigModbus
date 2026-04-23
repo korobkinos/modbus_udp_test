@@ -6,13 +6,13 @@
 *)
 TYPE ST_UdpBroadcastConfigModbus :
 STRUCT
-    enable                 : WORD;   (* 0 = канал выключен, <>0 = включен *)
+    enable                 : WORD;   (* 0 = только ручной start_send, <>0 = автозапуск по period_ms *)
     signature              : DWORD;  (* Идентификатор пакета, 2 регистра *)
     local_port             : WORD;   (* Локальный UDP-порт *)
     remote_port            : WORD;   (* Удаленный UDP-порт *)
     max_packet_bytes_limit : WORD;   (* Лимит размера UDP-пакета, байт *)
     period_ms              : WORD;   (* Период цикла, миллисекунды *)
-    start_send             : WORD;   (* 0/1, ручной запуск цикла по фронту *)
+    start_send             : WORD;   (* 0/1, ручной запуск цикла по фронту 0->1 *)
     udp_data_start_index   : WORD;   (* Начальный индекс данных *)
     udp_data_end_index     : WORD;   (* Конечный индекс данных *)
     packet_type            : WORD;   (* Тип пакета в заголовке *)

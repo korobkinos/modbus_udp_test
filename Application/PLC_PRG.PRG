@@ -13,6 +13,9 @@ VAR
     (* Триггер для однократного заполнения массива *)
     initDone : BOOL;
     cfgInitDone : BOOL;
+    startSendPrev : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF WORD;  (* Предыдущее значение start_send для детектора фронта *)
+    startSendPulse : BOOL;                                     (* Односкановый импульс ручного запуска *)
+    fbEnable : BOOL;                                           (* Итоговое разрешение FB на текущем канале *)
 END_VAR
 
 // === IMPLEMENTATION ===
@@ -66,8 +69,19 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
     udp_cfg[ch].payload_endianness := udp_channel_modbus[ch].cfg.payload_endianness;
     udp_cfg[ch].inter_packet_delay_ms := udp_channel_modbus[ch].cfg.inter_packet_delay_ms;
 
+    (* Ручной старт только по фронту 0->1, даже если SCADA держит 1 несколько циклов *)
+    startSendPulse := (udp_cfg[ch].start_send <> 0) AND (startSendPrev[ch] = 0);
+    startSendPrev[ch] := udp_cfg[ch].start_send;
+
+    (* Логика режима:
+       - enable=1: периодическая отправка по таймеру
+       - enable=0: отправка только по ручному импульсу start_send
+       Во время активного цикла FB остается включенным до завершения. *)
+    fbEnable := udp_common.enable_all AND
+        (WORD_TO_BOOL(udp_cfg[ch].enable) OR startSendPulse OR udp_state[ch].busy);
+
     UdpBroadcast[ch](
-        Enable      := udp_common.enable_all AND WORD_TO_BOOL(udp_cfg[ch].enable),
+        Enable      := fbEnable,
         Signature   := udp_cfg[ch].signature,
         LocalIp     := udp_common.local_ip,
         BroadcastIp := udp_common.broadcast_ip,
@@ -75,7 +89,7 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
         RemotePort  := WORD_TO_UINT(udp_cfg[ch].remote_port),
         MaxPacketBytesLimit := WORD_TO_UDINT(udp_cfg[ch].max_packet_bytes_limit),
         Period      := UDINT_TO_TIME(WORD_TO_UDINT(udp_cfg[ch].period_ms)),
-        StartSend   := WORD_TO_BOOL(udp_cfg[ch].start_send),
+        StartSend   := startSendPulse,
         PacketType  := udp_cfg[ch].header_packet_type,
         Version     := udp_cfg[ch].header_version,
         PayloadEndianness := udp_cfg[ch].payload_endianness,

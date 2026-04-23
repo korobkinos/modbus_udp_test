@@ -44,11 +44,20 @@ VAR
     TxData : ARRAY[0..34999] OF WORD;
     UdpBroadcast : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF FB_UdpWordBroadcast;
     ch : UINT;
+    startSendPrev : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF WORD;
+    startSendPulse : BOOL;
+    fbEnable : BOOL;
 END_VAR
 
 FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
+    startSendPulse := (udp_cfg[ch].start_send <> 0) AND (startSendPrev[ch] = 0);
+    startSendPrev[ch] := udp_cfg[ch].start_send;
+
+    fbEnable := udp_common.enable_all AND
+        (WORD_TO_BOOL(udp_cfg[ch].enable) OR startSendPulse OR udp_state[ch].busy);
+
     UdpBroadcast[ch](
-        Enable      := udp_common.enable_all AND WORD_TO_BOOL(udp_cfg[ch].enable),
+        Enable      := fbEnable,
         Signature   := udp_cfg[ch].signature,
         LocalIp     := udp_common.local_ip,
         BroadcastIp := udp_common.broadcast_ip,
@@ -56,7 +65,7 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
         RemotePort  := WORD_TO_UINT(udp_cfg[ch].remote_port),
         MaxPacketBytesLimit := WORD_TO_UDINT(udp_cfg[ch].max_packet_bytes_limit),
         Period      := UDINT_TO_TIME(WORD_TO_UDINT(udp_cfg[ch].period_ms)),
-        StartSend   := WORD_TO_BOOL(udp_cfg[ch].start_send),
+        StartSend   := startSendPulse,
         DataStartIndex := WORD_TO_UDINT(udp_cfg[ch].udp_data_start_index),
         DataEndIndex   := WORD_TO_UDINT(udp_cfg[ch].udp_data_end_index),
         Data := TxData
@@ -80,6 +89,13 @@ END_FOR
 - `DataStartIndex` - старт индекса в массиве `Data`
 - `DataEndIndex` - конец индекса в массиве `Data`
 - `Data` - массив `ARRAY[*] OF WORD` через `VAR_IN_OUT`
+
+## Режимы запуска через cfg
+- `enable = 1`: канал работает в периодическом режиме по таймеру `period_ms`.
+- `enable = 0`: периодический режим выключен.
+- `start_send`: ручной запуск цикла по фронту `0 -> 1` (импульс).
+- В текущей реализации `PLC_PRG` ручной импульс `start_send` запускает отправку даже при `enable = 0`.
+- Во время активной отправки FB удерживается включенным до завершения цикла (`busy = 1`), чтобы цикл не обрывался.
 
 ## Выходы FB
 Основные:
@@ -163,13 +179,13 @@ FB автоматически нормализует границы:
 ### FB1 (`ch=0`) настройка `cfg` (`MW0..MW15`)
 | Адрес MW | Поле | Тип | Доступ | Описание и значения |
 |---|---|---|---|---|
-| `MW0` | `enable` | `WORD` | `R/W` | Включение канала. `0` = выкл, `1` = вкл. |
+| `MW0` | `enable` | `WORD` | `R/W` | Режим автозапуска по таймеру. `0` = только ручной запуск, `1` = периодический запуск по `period_ms`. |
 | `MW1..MW2` | `signature` | `DWORD` | `R/W` | Сигнатура заголовка. 4 ASCII-символа в hex, например `AM01` = `16#31304D41`. |
 | `MW3` | `local_port` | `WORD` | `R/W` | Локальный UDP-порт ПЛК (порт источника). |
 | `MW4` | `remote_port` | `WORD` | `R/W` | UDP-порт назначения на приемнике. |
 | `MW5` | `max_packet_bytes_limit` | `WORD` | `R/W` | Лимит размера UDP-пакета, байт. `0` = авто до `65507`. Для Ethernet обычно `1472`. |
 | `MW6` | `period_ms` | `WORD` | `R/W` | Период автозапуска цикла отправки, мс. Пример: `2000` = 2 сек. |
-| `MW7` | `start_send` | `WORD` | `R/W` | Ручной старт цикла по фронту. Импульс: записать `1`, затем вернуть `0`. |
+| `MW7` | `start_send` | `WORD` | `R/W` | Ручной старт цикла по фронту `0->1`. Импульс: записать `1`, затем вернуть `0`. Работает и при `enable = 0`. |
 | `MW8` | `udp_data_start_index` | `WORD` | `R/W` | Начальный индекс в `DataArray[0..34999]`. |
 | `MW9` | `udp_data_end_index` | `WORD` | `R/W` | Конечный индекс в `DataArray[0..34999]`. |
 | `MW10` | `packet_type` | `WORD` | `R/W` | Поле `PacketType` в заголовке AMxx. |
