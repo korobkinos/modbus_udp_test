@@ -1,0 +1,32 @@
+﻿(*
+  Функция расчета контрольной суммы массива WORD.
+  Алгоритм: сложить все WORD в UDINT, вернуть младшие 16 бит суммы.
+*)
+FUNCTION F_CalcWordChecksum : WORD
+VAR_INPUT
+    pData     : POINTER TO WORD;  (* Указатель на массив WORD *)
+    wordCount : UINT;             (* Количество WORD для суммирования *)
+END_VAR
+VAR
+    i     : UINT;
+    sum   : UDINT;
+    pWord : POINTER TO WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+    IF (pData = 0) OR (wordCount = 0) THEN
+        F_CalcWordChecksum := 0;
+        RETURN;
+    END_IF
+
+    sum := 0;
+    pWord := pData;
+
+    FOR i := 0 TO wordCount - 1 DO
+        sum := sum + WORD_TO_UDINT(pWord^);
+        (* В CODESYS арифметика указателей идет в байтах, поэтому шаг = SIZEOF(WORD). *)
+        pWord := pWord + SIZEOF(WORD);
+    END_FOR
+
+    F_CalcWordChecksum := UDINT_TO_WORD(sum AND UDINT#16#0000FFFF);

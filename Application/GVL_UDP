@@ -1,0 +1,45 @@
+﻿(*
+  Глобальные переменные для управления UDP-широковещательной рассылкой.
+*)
+VAR_GLOBAL
+    udp_enable       : BOOL := TRUE;
+    udp_signature    : DWORD := 16#534B4D41;               (* Сигнатура UDP-пакета: 'AMKS' *)
+    udp_local_ip     : STRING(255) := '192.168.4.220';
+    udp_broadcast_ip : STRING(255) := '192.168.4.255';
+    udp_data_start_index : UDINT := 0;                       (* Начальный индекс данных для отправки в массиве Data *)
+    udp_data_end_index   : UDINT := 34999;                   (* Конечный индекс данных для отправки в массиве Data *)
+    udp_effective_data_start_index : UDINT;                  (* Фактический старт после ограничения границ *)
+    udp_effective_data_end_index   : UDINT;                  (* Фактический конец после ограничения границ *)
+    udp_effective_data_words       : UDINT;                  (* Фактическое количество WORD к отправке *)
+    udp_source_data_words          : UDINT;                  (* Текущая длина входного массива в FB *)
+    udp_max_packet_bytes_limit : UDINT := UDINT#1472;        (* Ограничение размера UDP-пакета, байт. 0 = авто (до 65507) *)
+    udp_local_port   : UINT := 15001;
+    udp_remote_port  : UINT := 15000;
+    udp_period       : TIME := T#2S;
+    udp_start_send   : BOOL := FALSE;                        (* Ручной запуск цикла по фронту *)
+
+    udp_sequence_id  : UDINT;                                (* Номер текущего цикла передачи *)
+    udp_packet_index : WORD;                                 (* Индекс текущего отправляемого пакета *)
+    udp_packet_count : WORD;                                 (* Общее число пакетов в текущем цикле *)
+    udp_send_count   : UDINT;                                (* Счетчик успешно отправленных пакетов *)
+    udp_error        : BOOL;                                 (* Общий флаг ошибки FB *)
+    udp_error_id     : NBS.ERROR;                            (* Код последней ошибки FB *)
+
+    (* Дополнительная диагностика FB_UdpWordBroadcast *)
+    udp_diag_state               : UINT;                     (* Текущее состояние автомата FB *)
+    udp_diag_error_source        : UINT;                     (* Источник ошибки: 0-none,1-localIP,2-remoteIP,3-localIP=0.0.0.0,4-peer,5-array,6-range,7-words>limit,8-send,9-maxPacketCalc,10-sendLen>udpMax *)
+    udp_diag_peer_enable         : BOOL;                     (* Разрешение запуска UDP_Peer *)
+    udp_diag_peer_active         : BOOL;                     (* UDP_Peer активен и готов к отправке *)
+    udp_diag_peer_error          : BOOL;                     (* Флаг ошибки UDP_Peer *)
+    udp_diag_peer_error_id       : NBS.ERROR;                (* Код ошибки UDP_Peer *)
+    udp_diag_send_execute        : BOOL;                     (* В текущем цикле выполнялась попытка Send *)
+    udp_diag_send_busy           : BOOL;                     (* Зарезервировано, сейчас не используется (FALSE) *)
+    udp_diag_send_error          : BOOL;                     (* Ошибка на вызове Send *)
+    udp_diag_send_error_id       : NBS.ERROR;                (* Код ошибки Send *)
+    udp_diag_send_count          : UDINT;                    (* Фактически отправлено байт по данным udiCount *)
+    udp_diag_send_length         : UDINT;                    (* Запрошенная длина отправки в байтах *)
+    udp_diag_words_per_packet_limit : UINT;                  (* Лимит WORD на один пакет после расчетов *)
+    udp_diag_effective_packet_bytes_limit : UDINT;           (* Примененный лимит размера UDP-пакета в байтах *)
+    udp_diag_local_init_error    : NBS.ERROR;                (* Результат SetInitialValue(LocalIp) *)
+    udp_diag_remote_init_error   : NBS.ERROR;                (* Результат SetInitialValue(BroadcastIp) *)
+END_VAR
