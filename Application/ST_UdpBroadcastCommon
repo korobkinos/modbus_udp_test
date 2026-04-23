@@ -1,0 +1,11 @@
+﻿(*
+  Общие настройки UDP-рассылки для всех экземпляров FB.
+  Эти параметры применяются ко всем каналам.
+*)
+TYPE ST_UdpBroadcastCommon :
+STRUCT
+    enable_all   : BOOL := TRUE;                           (* Общий глобальный enable для всех каналов *)
+    local_ip     : STRING(255) := '192.168.4.220';        (* Локальный IP ПЛК *)
+    broadcast_ip : STRING(255) := '192.168.4.255';        (* Адрес назначения (обычно broadcast) *)
+END_STRUCT
+END_TYPE
