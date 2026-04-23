@@ -6,6 +6,10 @@
 *)
 VAR_GLOBAL CONSTANT
     UDP_CHANNEL_COUNT : UINT := 10;  (* Количество каналов в массиве UdpBroadcast *)
+    UDP_MB_CHANNEL_START_MW : UINT := 0; (* Стартовый адрес Modbus-карты каналов *)
+    UDP_MB_CFG_WORDS : UINT := 24;       (* Размер блока настроек канала, WORD *)
+    UDP_MB_STATE_WORDS : UINT := 48;     (* Размер блока состояний канала, WORD *)
+    UDP_MB_CHANNEL_STRIDE_WORDS : UINT := 72; (* Полный размер блока канала (настройки+состояния), WORD *)
 END_VAR
 
 VAR_GLOBAL
@@ -18,6 +22,16 @@ VAR_GLOBAL
     );
 
     (*
+      Modbus-карта каналов (настройки + состояния).
+      Привязка начинается с %MW0.
+      Один канал занимает 72 регистра:
+      - cfg:   24 WORD
+      - state: 48 WORD
+      База канала ch: MW(UDP_MB_CHANNEL_START_MW + ch * UDP_MB_CHANNEL_STRIDE_WORDS).
+    *)
+    udp_channel_modbus AT %MW0 : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastChannelModbus;
+
+    (*
       Индивидуальные настройки каналов.
       Пояснение полей в каждом элементе:
       - enable: включение конкретного канала
@@ -27,6 +41,9 @@ VAR_GLOBAL
       - max_packet_bytes_limit: лимит UDP-пакета, байт (0 = авто до 65507)
       - period_ms: период автозапуска цикла, мс
       - start_send: ручной запуск цикла по фронту
+      - header_packet_type/header_version: поля заголовка
+      - payload_endianness: порядок байт в WORD payload
+      - inter_packet_delay_ms: пауза между пакетами внутри цикла
       - udp_data_start_index: старт индекса в общем массиве DataArray[0..34999]
       - udp_data_end_index: конец индекса в общем массиве DataArray[0..34999]
     *)

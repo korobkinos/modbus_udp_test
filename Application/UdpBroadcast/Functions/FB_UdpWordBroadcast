@@ -17,6 +17,10 @@ VAR_INPUT
     MaxPacketBytesLimit : UDINT; (* Ограничение размера UDP-пакета в байтах (0 = теоретический максимум 65507) *)
     Period      : TIME;          (* Период запуска полного цикла передачи *)
     StartSend   : BOOL;          (* Ручной запуск полного цикла передачи *)
+    PacketType  : WORD := 1;     (* Тип пакета в заголовке *)
+    Version     : WORD := 1;     (* Версия протокола в заголовке *)
+    PayloadEndianness : WORD := 0;    (* 0=little, 1=swap bytes in WORD *)
+    InterPacketDelay : TIME := T#0MS; (* Пауза между пакетами внутри цикла *)
     DataStartIndex : UDINT := 0;                 (* Начальный индекс отправки в пределах входного массива *)
     DataEndIndex   : UDINT := UDINT#16#FFFFFFFF; (* Конечный индекс отправки в пределах входного массива *)
 END_VAR
@@ -76,6 +80,7 @@ VAR
 
     (* Внутренние переменные *)
     timer       : TON;
+    interPacketTimer : TON;
     startTrig   : R_TRIG;
     cycleStart  : BOOL;
 
@@ -105,7 +110,6 @@ VAR
     (* Вспомогательные переменные *)
     i             : UINT;
     wordsInPacket : WORD;
-    checksum      : WORD;
     sendResult    : NBS.ERROR;
     sendCount     : UDINT;
     iByte         : UDINT;
@@ -113,6 +117,7 @@ VAR
     pDstByte      : POINTER TO BYTE;
     srcWordIndex  : UDINT;
     srcAbsoluteIndex : DINT;
+    payloadWordRaw : WORD;
 END_VAR
 
 // ------------------------------------------------------------
@@ -130,6 +135,7 @@ IF NOT Enable THEN
     CycleDone := FALSE;
     state := 0;
     timer(IN := FALSE);
+    interPacketTimer(IN := FALSE);
     udpPeer(xEnable := FALSE);
     cycleStart := FALSE;
 
@@ -164,6 +170,10 @@ timer(IN := TRUE, PT := Period);
 IF timer.Q THEN
     cycleStart := TRUE;
     timer(IN := FALSE);
+END_IF
+
+IF state <> 40 THEN
+    interPacketTimer(IN := FALSE);
 END_IF
 
 // ------------------------------------------------------------
@@ -354,8 +364,8 @@ CASE state OF
         END_IF
 
         packetHeader.Signature        := Signature;
-        packetHeader.Version          := 1;
-        packetHeader.PacketType       := 1;
+        packetHeader.Version          := Version;
+        packetHeader.PacketType       := PacketType;
         packetHeader.SequenceId       := currentSeqId;
         packetHeader.PacketIndex      := currentPacket;
         packetHeader.PacketCount      := totalPackets;
@@ -368,11 +378,19 @@ CASE state OF
         FOR i := 0 TO wordsInPacket - 1 DO
             srcWordIndex := selectedStartIndex + srcOffsetWords + UINT_TO_UDINT(i);
             srcAbsoluteIndex := dataLowerBound + UDINT_TO_DINT(srcWordIndex);
-            packetPayload[i] := Data[srcAbsoluteIndex];
+            payloadWordRaw := Data[srcAbsoluteIndex];
+
+            CASE PayloadEndianness OF
+                1:  (* swap bytes in WORD *)
+                    packetPayload[i] := SHL(payloadWordRaw, 8) OR SHR(payloadWordRaw, 8);
+            ELSE    (* 0 и все прочие: little-endian/native *)
+                    packetPayload[i] := payloadWordRaw;
+            END_CASE
         END_FOR
 
-        checksum := F_CalcWordChecksum(pData := ADR(packetPayload), wordCount := wordsInPacket);
-        packetHeader.Checksum := checksum;
+        (* Прикладная checksum поля Header не используется.
+           UDP checksum рассчитывается сетевым стеком библиотеки. *)
+        packetHeader.Checksum := 0;
 
         payloadSizeBytes := WORD_TO_UDINT(wordsInPacket) * UDINT#2;
 
@@ -425,7 +443,11 @@ CASE state OF
             DiagSendError := FALSE;
             DiagSendErrorId := NBS.ERROR.NO_ERROR;
             SendDoneCount := SendDoneCount + 1;
-            state := 50;
+            IF (remainingWords > WORD_TO_UDINT(wordsInPacket)) AND (InterPacketDelay > T#0MS) THEN
+                state := 40;
+            ELSE
+                state := 50;
+            END_IF
         ELSE
             DiagSendError := TRUE;
             DiagSendErrorId := sendResult;
@@ -433,6 +455,13 @@ CASE state OF
             ErrorId := sendResult;
             DiagErrorSource := 8;
             state := 100;
+        END_IF
+
+    40: (* InterPacketDelay *)
+        interPacketTimer(IN := TRUE, PT := InterPacketDelay);
+        IF interPacketTimer.Q THEN
+            interPacketTimer(IN := FALSE);
+            state := 50;
         END_IF
 
     50: (* NextPacket *)

@@ -10,9 +10,8 @@
 - внутри FB задается диапазон отправки `DataStartIndex..DataEndIndex`
 
 ## Состав
-- `Application/FB_UdpWordBroadcast` - основной FB передачи
-- `Application/ST_UdpPacketHeader` - структура заголовка AMKS
-- `Application/F_CalcWordChecksum` - контрольная сумма payload
+- `Application/UdpBroadcast/Functions/FB_UdpWordBroadcast` - основной FB передачи
+- `Application/UdpBroadcast/Struct/ST_UdpPacketHeader` - структура заголовка AMKS
 - `Application/GVL_UDP` - общие настройки + массив настроек/состояний каналов
 - `Application/PLC_PRG.PRG` - пример использования массива FB
 
@@ -34,9 +33,8 @@
 - `Checksum : WORD`
 
 Контрольная сумма:
-- сумма всех `WORD` payload
-- тип суммы `UDINT`
-- в пакет пишутся младшие 16 бит
+- поле `Header.Checksum` сейчас не используется (`0`)
+- UDP checksum рассчитывается сетевым стеком библиотеки
 
 ## Как использовать FB
 Пример вызова:
@@ -76,6 +74,9 @@ END_FOR
 - `MaxPacketBytesLimit` - лимит размера UDP datagram, `0` = авто до `65507`
 - `Period` - период автозапуска полного цикла передачи (`TIME`)
 - `StartSend` - ручной старт цикла по фронту
+- `PacketType`, `Version` - параметры заголовка пакета
+- `PayloadEndianness` - порядок байт в WORD payload (`0=little`, `1=swap bytes`)
+- `InterPacketDelay` - пауза между пакетами внутри цикла
 - `DataStartIndex` - старт индекса в массиве `Data`
 - `DataEndIndex` - конец индекса в массиве `Data`
 - `Data` - массив `ARRAY[*] OF WORD` через `VAR_IN_OUT`
@@ -124,6 +125,7 @@ FB автоматически нормализует границы:
 - `udp_common` - общие настройки для всех каналов (`local_ip`, `broadcast_ip`, `enable_all`)
 - `udp_cfg[0..UDP_CHANNEL_COUNT-1]` - индивидуальные настройки каналов
 - `udp_state[0..UDP_CHANNEL_COUNT-1]` - состояние и диагностика каналов
+- `udp_channel_modbus[0..UDP_CHANNEL_COUNT-1]` - карта Modbus (настройки + состояния)
 
 Для каналов по умолчанию заданы разные порты:
 - канал 0: `local_port = 15001`, `remote_port = 15000`
@@ -137,5 +139,101 @@ FB автоматически нормализует границы:
 ## Что уже исправлено
 - Убрана зависимость FB от внешних указателей `DataPtr/DataWords`
 - Добавлена работа с массивом любой длины через `VAR_IN_OUT ARRAY[*]`
-- Исправлен шаг указателя в `F_CalcWordChecksum` (`+ SIZEOF(WORD)`)
 - Сигнатура по умолчанию обновлена на `AMKS`
+
+## Приложение: карта Modbus для SCADA
+
+### Назначение
+Этот раздел нужен для привязки тегов в SCADA к `GVL_UDP.udp_channel_modbus`.
+
+### Размер и диапазоны
+- Старт карты: `%MW0`
+- Размер одного канала: `72 WORD`
+- Размер всех 10 каналов: `720 WORD`
+- Диапазон всей карты: `%MW0..%MW719`
+- Структура канала:
+- `cfg` (настройки): `24 WORD` (`MW(base+0)..MW(base+23)`)
+- `state` (состояние и диагностика): `48 WORD` (`MW(base+24)..MW(base+71)`)
+
+### Формула адресов для канала `ch`
+- `base = ch * 72`
+- `cfg_base = base + 0`
+- `state_base = base + 24`
+
+Примеры:
+- FB1 (`ch=0`): `MW0..MW71`
+- FB2 (`ch=1`): `MW72..MW143`
+- FB3 (`ch=2`): `MW144..MW215`
+
+### FB1 (`ch=0`) настройка `cfg` (`MW0..MW23`)
+| Адрес MW | Поле | Тип | Доступ | Описание и значения |
+|---|---|---|---|---|
+| `MW0` | `enable` | `WORD` | `R/W` | Включение канала. `0` = выкл, `1` = вкл. |
+| `MW1..MW2` | `signature` | `DWORD` | `R/W` | Сигнатура заголовка. 4 ASCII-символа в hex, например `AM01` = `16#31304D41`. |
+| `MW3` | `local_port` | `WORD` | `R/W` | Локальный UDP-порт ПЛК (порт источника). |
+| `MW4` | `remote_port` | `WORD` | `R/W` | UDP-порт назначения на приемнике. |
+| `MW5..MW6` | `max_packet_bytes_limit` | `UDINT` | `R/W` | Лимит размера UDP-пакета, байт. `0` = авто до `65507`. Для Ethernet обычно `1472`. |
+| `MW7` | `period_ms` | `WORD` | `R/W` | Период автозапуска цикла отправки, мс. Пример: `2000` = 2 сек. |
+| `MW8` | `start_send` | `WORD` | `R/W` | Ручной старт цикла по фронту. Импульс: записать `1`, затем вернуть `0`. |
+| `MW9..MW10` | `udp_data_start_index` | `UDINT` | `R/W` | Начальный индекс в `DataArray[0..34999]`. |
+| `MW11..MW12` | `udp_data_end_index` | `UDINT` | `R/W` | Конечный индекс в `DataArray[0..34999]`. |
+| `MW13` | `packet_type` | `WORD` | `R/W` | Поле `PacketType` в заголовке AMxx. |
+| `MW14` | `version` | `WORD` | `R/W` | Поле `Version` в заголовке AMxx. |
+| `MW15` | `payload_endianness` | `WORD` | `R/W` | Порядок байт WORD в payload: `0` = native/little, `1` = swap bytes. |
+| `MW16` | `inter_packet_delay_ms` | `WORD` | `R/W` | Пауза между пакетами внутри одного цикла, мс. |
+| `MW17..MW23` | `reserved[0..6]` | `WORD[7]` | `R/W` | Резерв. Держать `0`. |
+
+### FB1 (`ch=0`) состояние `state` (`MW24..MW71`)
+| Адрес MW | Поле | Тип | Доступ | Описание и значения |
+|---|---|---|---|---|
+| `MW24` | `active` | `WORD` | `R` | `0` = FB неактивен, `1` = FB активен. |
+| `MW25` | `busy` | `WORD` | `R` | `0` = цикл не выполняется, `1` = идет цикл передачи. |
+| `MW26` | `error` | `WORD` | `R` | `0` = ошибок нет, `1` = есть ошибка. |
+| `MW27` | `error_id` | `WORD` | `R` | Код ошибки `NBS.ERROR` текущего канала. |
+| `MW28..MW29` | `sequence_id` | `UDINT` | `R` | Идентификатор цикла передачи, растет на каждый новый цикл. |
+| `MW30` | `packet_index` | `WORD` | `R` | Индекс текущего пакета в цикле (`0..packet_count-1`). |
+| `MW31` | `packet_count` | `WORD` | `R` | Общее число пакетов в текущем цикле. |
+| `MW32..MW33` | `source_data_words` | `UDINT` | `R` | Общая длина входного массива `Data`, WORD. |
+| `MW34..MW35` | `effective_data_start_index` | `UDINT` | `R` | Фактически примененный старт после ограничений FB. |
+| `MW36..MW37` | `effective_data_end_index` | `UDINT` | `R` | Фактически примененный конец после ограничений FB. |
+| `MW38..MW39` | `effective_data_words` | `UDINT` | `R` | Фактическое число WORD в выбранном диапазоне отправки. |
+| `MW40..MW41` | `send_count` | `UDINT` | `R` | Счетчик успешно отправленных UDP-пакетов. |
+| `MW42..MW43` | `last_word_index` | `UDINT` | `R` | Индекс первого WORD в последнем отправленном пакете. |
+| `MW44` | `last_word_count` | `WORD` | `R` | Количество WORD в последнем отправленном пакете. |
+| `MW45` | `cycle_done` | `WORD` | `R` | `0` = цикл не завершен, `1` = цикл завершен (флаг цикла). |
+| `MW46` | `diag_state` | `WORD` | `R` | Текущее состояние автомата FB. |
+| `MW47` | `diag_error_source` | `WORD` | `R` | Источник ошибки (коды см. ниже). |
+| `MW48` | `diag_peer_enable` | `WORD` | `R` | `0` = UDP_Peer запрещен, `1` = разрешен. |
+| `MW49` | `diag_peer_active` | `WORD` | `R` | `0` = UDP_Peer неактивен, `1` = активен. |
+| `MW50` | `diag_peer_error` | `WORD` | `R` | `0` = ошибки peer нет, `1` = есть ошибка peer. |
+| `MW51` | `diag_peer_error_id` | `WORD` | `R` | Код ошибки UDP_Peer (`NBS.ERROR`). |
+| `MW52` | `diag_send_execute` | `WORD` | `R` | `0` = вызова `Send` не было, `1` = выполнялся вызов `Send`. |
+| `MW53` | `diag_send_busy` | `WORD` | `R` | Резерв диагностики, сейчас обычно `0`. |
+| `MW54` | `diag_send_error` | `WORD` | `R` | `0` = ошибки `Send` нет, `1` = ошибка `Send`. |
+| `MW55` | `diag_send_error_id` | `WORD` | `R` | Код ошибки `Send` (`NBS.ERROR`). |
+| `MW56..MW57` | `diag_send_count` | `UDINT` | `R` | Фактически отправлено байт в последнем `Send`. |
+| `MW58..MW59` | `diag_send_length` | `UDINT` | `R` | Запрошенная длина отправки, байт. |
+| `MW60` | `diag_words_per_packet_limit` | `WORD` | `R` | Расчетный лимит WORD в одном пакете. |
+| `MW61..MW62` | `diag_effective_packet_bytes_limit` | `UDINT` | `R` | Примененный лимит размера пакета, байт. |
+| `MW63` | `diag_local_init_error` | `WORD` | `R` | Результат `SetInitialValue(LocalIp)`, код `NBS.ERROR`. |
+| `MW64` | `diag_remote_init_error` | `WORD` | `R` | Результат `SetInitialValue(BroadcastIp)`, код `NBS.ERROR`. |
+| `MW65..MW71` | `reserved[0..6]` | `WORD[7]` | `R` | Резерв. Пока не используется. |
+
+### Коды `diag_error_source`
+- `0` - нет ошибки источника
+- `1` - ошибка инициализации LocalIp
+- `2` - ошибка инициализации BroadcastIp
+- `3` - LocalIp = `0.0.0.0`
+- `4` - ошибка `UDP_Peer`
+- `5` - ошибка границ массива `Data`
+- `6` - ошибка диапазона `DataStartIndex..DataEndIndex`
+- `7` - слишком большой диапазон (переполнение по числу пакетов)
+- `8` - ошибка `Send`
+- `9` - ошибка расчета лимита пакета
+- `10` - `sendLen` больше лимита пакета
+
+### Важные примечания для SCADA
+- Все поля `UDINT/DWORD` занимают 2 регистра `WORD`.
+- Порядок слов для 32-битных значений зависит от настройки клиента SCADA (`word order`, `endianness`).
+- `start_send` нужно использовать как импульсный бит (не держать постоянно в `1`).
+- Поля `reserved` лучше не использовать под теги, держать нулевыми.
