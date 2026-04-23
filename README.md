@@ -184,7 +184,7 @@ FB автоматически нормализует границы:
 | `MW16` | `active` | `WORD` | `R` | `0` = FB неактивен, `1` = FB активен. |
 | `MW17` | `busy` | `WORD` | `R` | `0` = цикл не выполняется, `1` = идет цикл передачи. |
 | `MW18` | `error` | `WORD` | `R` | `0` = ошибок нет, `1` = есть ошибка. |
-| `MW19` | `error_id` | `WORD` | `R` | Код ошибки `NBS.ERROR` текущего канала. |
+| `MW19` | `error_id` | `WORD` | `R` | Общий код последней ошибки FB (`NBS.ERROR`). Это не код `diag_error_source`. |
 | `MW20` | `sequence_id` | `WORD` | `R` | Номер цикла передачи, младшее WORD. |
 | `MW21` | `packet_index` | `WORD` | `R` | Индекс текущего пакета в цикле (`0..packet_count-1`). |
 | `MW22` | `packet_count` | `WORD` | `R` | Общее число пакетов в текущем цикле. |
@@ -197,7 +197,7 @@ FB автоматически нормализует границы:
 | `MW29` | `last_word_count` | `WORD` | `R` | Количество WORD в последнем отправленном пакете. |
 | `MW30` | `cycle_done` | `WORD` | `R` | `0` = цикл не завершен, `1` = цикл завершен. |
 | `MW31` | `diag_state` | `WORD` | `R` | Текущее состояние автомата FB. |
-| `MW32` | `diag_error_source` | `WORD` | `R` | Источник ошибки (коды см. ниже). |
+| `MW32` | `diag_error_source` | `WORD` | `R` | Внутренний код источника ошибки FB (`0..10`, коды см. ниже). Это не `NBS.ERROR`. |
 | `MW33` | `diag_peer_enable` | `WORD` | `R` | `0` = UDP_Peer запрещен, `1` = разрешен. |
 | `MW34` | `diag_peer_active` | `WORD` | `R` | `0` = UDP_Peer неактивен, `1` = активен. |
 | `MW35` | `diag_peer_error` | `WORD` | `R` | `0` = ошибки peer нет, `1` = есть ошибка peer. |
@@ -205,7 +205,7 @@ FB автоматически нормализует границы:
 | `MW37` | `diag_send_execute` | `WORD` | `R` | `0` = вызова `Send` не было, `1` = выполнялся вызов `Send`. |
 | `MW38` | `diag_send_busy` | `WORD` | `R` | Резерв диагностики, обычно `0`. |
 | `MW39` | `diag_send_error` | `WORD` | `R` | `0` = ошибки `Send` нет, `1` = ошибка `Send`. |
-| `MW40` | `diag_send_error_id` | `WORD` | `R` | Код ошибки `Send` (`NBS.ERROR`). |
+| `MW40` | `diag_send_error_id` | `WORD` | `R` | Код результата/ошибки `udpPeer.Send` (`NBS.ERROR`). |
 | `MW41` | `diag_send_count` | `WORD` | `R` | Фактически отправлено байт, младшее WORD. |
 | `MW42` | `diag_send_length` | `WORD` | `R` | Запрошенная длина отправки, байт, младшее WORD. |
 | `MW43` | `diag_words_per_packet_limit` | `WORD` | `R` | Расчетный лимит WORD в одном пакете. |
@@ -226,6 +226,16 @@ FB автоматически нормализует границы:
 - `8` - ошибка `Send`
 - `9` - ошибка расчета лимита пакета
 - `10` - `sendLen` больше лимита пакета
+
+### Как читать регистры ошибок
+- `diag_error_source` это внутренний код логики FB (таблица `0..10` выше), он показывает в каком месте возникла ошибка.
+- `error_id` это общий код ошибки FB типа `NBS.ERROR`.
+- `diag_peer_error_id` это код ошибки компонента `UDP_Peer` типа `NBS.ERROR`.
+- `diag_send_error_id` это код результата вызова `udpPeer.Send` типа `NBS.ERROR`.
+- Практика диагностики: сначала смотреть `diag_error_source`, затем уже связанный с ним `NBS.ERROR` код.
+- Если `diag_error_source = 4`, обычно ключевой код в `diag_peer_error_id`.
+- Если `diag_error_source = 8`, обычно ключевой код в `diag_send_error_id`.
+- Если `diag_error_source = 1` или `2`, смотрите `diag_local_init_error` и `diag_remote_init_error`.
 
 ### Важные примечания для SCADA
 - В `cfg` только `signature` занимает 2 регистра (`DWORD`), остальные поля `cfg` по 1 регистру (`WORD`).
