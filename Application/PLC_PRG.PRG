@@ -15,6 +15,8 @@ VAR
     (* Триггер для однократного заполнения массива *)
     initDone : BOOL;
     cfgInitDone : BOOL;
+    localIpInitDone : BOOL;
+    detectedLocalIp : STRING(16);
     
     startSendPrev : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF WORD;  (* Предыдущее значение start_send для детектора фронта *)
     startSendPulse : BOOL;                                     (* Односкановый импульс ручного запуска *)
@@ -31,6 +33,15 @@ END_VAR
 //     END_FOR
 //     initDone := TRUE;
 // END_IF
+
+(* Однократное автоопределение локального IP ПЛК *)
+IF NOT localIpInitDone THEN
+    detectedLocalIp := F_GetLocalIPv4();
+    IF detectedLocalIp <> '' THEN
+        udp_common.local_ip := detectedLocalIp;
+        localIpInitDone := TRUE;
+    END_IF
+END_IF
 
 (* Однократная загрузка дефолтов из udp_cfg в карту регистров Modbus (%MW0...) *)
 IF NOT cfgInitDone THEN
