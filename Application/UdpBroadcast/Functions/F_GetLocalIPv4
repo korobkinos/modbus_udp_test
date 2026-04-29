@@ -1,16 +1,17 @@
 FUNCTION F_GetLocalIPv4 : STRING(16)
 VAR
+    stAdapter : SysSocket.SOCK_ADAPTER_INFORMATION;
+    hAdapter  : UDINT;
+    uxiSize   : __UXINT;
+    udRes     : UDINT;
+    iGuard    : UINT;
+
+    sIp       : STRING(16);
     sHostName : STRING(64);
     stHost    : SysSocket.SOCK_HOSTENT;
     pIpAddr   : POINTER TO DWORD;
     stInAddr  : SysSocket.INADDR;
-    stAdapter : SysSocket.SOCK_ADAPTER_INFORMATION;
-    hAdapter  : UDINT;
-    uxiSize   : __UXINT;
-    sIp       : STRING(16);
-    rtResult  : UDINT;
 END_VAR
-
 VAR CONSTANT
     INVALID_HANDLE_UDINT : UDINT := 16#FFFFFFFF;
 END_VAR
@@ -18,22 +19,26 @@ END_VAR
 F_GetLocalIPv4 := '';
 sIp := '';
 
-(* Preferred path: enumerate adapters and pick first usable IPv4 *)
+(* 1) Preferred path: enumerate adapters *)
 uxiSize := SIZEOF(stAdapter);
 hAdapter := SysSocket.SysSockGetFirstAdapterInfo(
-    pAdapterInfo       := ADR(stAdapter),
-    puxiAdapterInfoSize:= ADR(uxiSize),
-    pResult            := 0
+    pAdapterInfo        := ADR(stAdapter),
+    puxiAdapterInfoSize := ADR(uxiSize),
+    pResult             := 0
 );
 
-WHILE hAdapter <> INVALID_HANDLE_UDINT DO
-    rtResult := SysSocket.SysSockInetNtoa(
-        pInAddr      := ADR(stAdapter.IpAddr),
-        szIPADDR     := sIp,
-        diIPAddrSize := SIZEOF(sIp)
-    );
+iGuard := 0;
+WHILE (hAdapter <> INVALID_HANDLE_UDINT) AND (iGuard < 32) DO
+    iGuard := iGuard + 1;
 
-    IF (rtResult = UDINT#0) AND (sIp <> '') AND (sIp <> '0.0.0.0') AND (sIp <> '127.0.0.1') THEN
+    sIp := CONCAT(BYTE_TO_STRING(stAdapter.IpAddr.S_un_b.s_b1), '.');
+    sIp := CONCAT(sIp, BYTE_TO_STRING(stAdapter.IpAddr.S_un_b.s_b2));
+    sIp := CONCAT(sIp, '.');
+    sIp := CONCAT(sIp, BYTE_TO_STRING(stAdapter.IpAddr.S_un_b.s_b3));
+    sIp := CONCAT(sIp, '.');
+    sIp := CONCAT(sIp, BYTE_TO_STRING(stAdapter.IpAddr.S_un_b.s_b4));
+
+    IF (sIp <> '') AND (sIp <> '0.0.0.0') AND (sIp <> '127.0.0.1') THEN
         F_GetLocalIPv4 := sIp;
         RETURN;
     END_IF
@@ -47,44 +52,38 @@ WHILE hAdapter <> INVALID_HANDLE_UDINT DO
     );
 END_WHILE
 
-(* Fallback path: host name -> first host address *)
-(* Read PLC host name *)
-rtResult := SysSocket.SysSockGetHostName(
+(* 2) Fallback path: host name -> first host address *)
+udRes := SysSocket.SysSockGetHostName(
     szHostName := sHostName,
     diNameLen  := SIZEOF(sHostName)
 );
-IF rtResult <> UDINT#0 THEN
+IF udRes <> UDINT#0 THEN
     RETURN;
 END_IF
 
-(* Resolve host name to IP list *)
-rtResult := SysSocket.SysSockGetHostByName(
+udRes := SysSocket.SysSockGetHostByName(
     szHostName := sHostName,
     pHost      := ADR(stHost)
 );
-IF rtResult <> UDINT#0 THEN
+IF udRes <> UDINT#0 THEN
     RETURN;
 END_IF
 
-(* Use first IP from the list *)
 pIpAddr := stHost.pAddrList[0];
 IF pIpAddr = 0 THEN
     RETURN;
 END_IF
 
 stInAddr.ulAddr := pIpAddr^;
-
-(* Convert IP to dotted string *)
-rtResult := SysSocket.SysSockInetNtoa(
+udRes := SysSocket.SysSockInetNtoa(
     pInAddr      := ADR(stInAddr),
     szIPADDR     := sIp,
     diIPAddrSize := SIZEOF(sIp)
 );
-IF rtResult <> UDINT#0 THEN
+IF udRes <> UDINT#0 THEN
     RETURN;
 END_IF
 
-(* Filter unusable values *)
 IF (sIp = '') OR (sIp = '0.0.0.0') OR (sIp = '127.0.0.1') THEN
     RETURN;
 END_IF

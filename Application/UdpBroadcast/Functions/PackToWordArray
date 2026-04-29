@@ -1,6 +1,6 @@
 ﻿FUNCTION PackToWordArray : BOOL
 VAR_IN_OUT
-    Dst : ARRAY[*] OF WORD;   // сюда пишем (можно DataArray[0..34999])
+    Dst : ARRAY[*] OF WORD;   // целевой буфер WORD
 END_VAR
 VAR_INPUT
     pSrc      : POINTER TO BYTE; // ADR(ваша_структура)

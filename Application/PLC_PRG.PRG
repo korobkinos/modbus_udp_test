@@ -1,7 +1,5 @@
 ﻿PROGRAM PLC_PRG
 VAR
-    (* Тестовый массив данных: 35000 WORD *)
-    DataArray : ARRAY[0..34999] OF WORD;
 	AISettingsData : MAIN_SENSOR_AI_SETTINGS;                         (* Данные для FB №1 (ch=0) *)
 	PidData : PidSettings; 							                   (* Данные для FB №2 (ch=1) *)
     
@@ -9,11 +7,8 @@ VAR
     UdpBroadcast : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF FB_UdpWordBroadcast;
 
     (* Индексы циклов *)
-    i : UDINT;
     ch : UINT;
 
-    (* Триггер для однократного заполнения массива *)
-    initDone : BOOL;
     cfgInitDone : BOOL;
     localIpInitDone : BOOL;
     detectedLocalIp : STRING(16);
@@ -26,13 +21,6 @@ VAR
 END_VAR
 
 // === IMPLEMENTATION ===
-
-// IF NOT initDone THEN
-//     FOR i := 0 TO 34999 DO
-//         DataArray[i] := UDINT_TO_WORD(i MOD 65536);
-//     END_FOR
-//     initDone := TRUE;
-// END_IF
 
 (* Однократное автоопределение локального IP ПЛК *)
 IF NOT localIpInitDone THEN
@@ -53,8 +41,8 @@ IF NOT cfgInitDone THEN
         udp_channel_modbus[ch].cfg.max_packet_bytes_limit := udp_cfg[ch].max_packet_bytes_limit;
         udp_channel_modbus[ch].cfg.period_ms := udp_cfg[ch].period_ms;
         udp_channel_modbus[ch].cfg.start_send := udp_cfg[ch].start_send;
-        udp_channel_modbus[ch].cfg.udp_data_start_index := udp_cfg[ch].udp_data_start_index;
-        udp_channel_modbus[ch].cfg.udp_data_count_register := udp_cfg[ch].udp_data_count_register;
+        udp_channel_modbus[ch].cfg.reserved_data_0 := udp_cfg[ch].reserved_data_0;
+        udp_channel_modbus[ch].cfg.reserved_data_1 := udp_cfg[ch].reserved_data_1;
         udp_channel_modbus[ch].cfg.packet_type := udp_cfg[ch].header_packet_type;
         udp_channel_modbus[ch].cfg.version := udp_cfg[ch].header_version;
         udp_channel_modbus[ch].cfg.payload_endianness := udp_cfg[ch].payload_endianness;
@@ -78,8 +66,8 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
     udp_cfg[ch].max_packet_bytes_limit := udp_channel_modbus[ch].cfg.max_packet_bytes_limit;
     udp_cfg[ch].period_ms := udp_channel_modbus[ch].cfg.period_ms;
     udp_cfg[ch].start_send := udp_channel_modbus[ch].cfg.start_send;
-    udp_cfg[ch].udp_data_start_index := udp_channel_modbus[ch].cfg.udp_data_start_index;
-    udp_cfg[ch].udp_data_count_register := udp_channel_modbus[ch].cfg.udp_data_count_register;
+    udp_cfg[ch].reserved_data_0 := udp_channel_modbus[ch].cfg.reserved_data_0;
+    udp_cfg[ch].reserved_data_1 := udp_channel_modbus[ch].cfg.reserved_data_1;
     udp_cfg[ch].header_packet_type := udp_channel_modbus[ch].cfg.packet_type;
     udp_cfg[ch].header_version := udp_channel_modbus[ch].cfg.version;
     udp_cfg[ch].payload_endianness := udp_channel_modbus[ch].cfg.payload_endianness;
@@ -128,9 +116,6 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
         InterPacketDelay := UDINT_TO_TIME(WORD_TO_UDINT(udp_cfg[ch].inter_packet_delay_ms)),
         pPayloadData      := payloadPtr,
         PayloadSizeBytes  := payloadSizeBytes,
-        DataStartIndex    := WORD_TO_UDINT(udp_cfg[ch].udp_data_start_index),
-        DataCountRegister := WORD_TO_UDINT(udp_cfg[ch].udp_data_count_register),
-        Data := DataArray,
 
         Active        => udp_state[ch].active,
         Busy          => udp_state[ch].busy,

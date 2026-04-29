@@ -1,8 +1,7 @@
 ﻿(*
-  Функциональный блок широковещательной UDP-передачи массива WORD.
+  Функциональный блок широковещательной UDP-передачи произвольного payload.
   Использует библиотеку Net Base Services (NBS).
-  Принимает входной массив через VAR_IN_OUT Data : ARRAY[*] OF WORD.
-  Диапазон отправки задается стартовым индексом и количеством WORD: DataStartIndex/DataCountRegister.
+  Источник данных задается через pPayloadData + PayloadSizeBytes.
   Данные автоматически разбиваются на UDP-пакеты по ограничению размера.
 *)
 {attribute 'no_assign'}
@@ -23,11 +22,6 @@ VAR_INPUT
     InterPacketDelay : TIME := T#0MS; (* Пауза между пакетами внутри цикла *)
     pPayloadData      : POINTER TO BYTE := 0; (* Указатель на структуру/буфер для отправки *)
     PayloadSizeBytes  : UDINT := 0;           (* Размер структуры/буфера в байтах *)
-    DataStartIndex    : UDINT := 0; (* Начальный индекс отправки в пределах входного массива *)
-    DataCountRegister : UDINT := 1; (* Количество WORD для отправки, начиная с DataStartIndex *)
-END_VAR
-VAR_IN_OUT
-    Data : ARRAY[*] OF WORD;     (* Входной массив данных произвольной длины *)
 END_VAR
 VAR_OUTPUT
     Active        : BOOL;        (* FB активен *)
@@ -37,10 +31,10 @@ VAR_OUTPUT
     SequenceId    : UDINT;       (* Текущий номер цикла передачи *)
     PacketIndex   : WORD;        (* Индекс текущего отправляемого пакета *)
     PacketCount   : WORD;        (* Всего пакетов в текущем цикле *)
-    SourceDataWords : UDINT;     (* Длина входного массива Data в WORD *)
-    EffectiveDataStartIndex : UDINT; (* Фактический стартовый индекс в Data после ограничения *)
-    EffectiveDataEndIndex   : UDINT; (* Фактический конечный индекс в Data после ограничения *)
-    EffectiveDataWords      : UDINT; (* Фактическое количество WORD к отправке *)
+    SourceDataWords : UDINT;     (* Размер payload в WORD (округление вверх по байтам) *)
+    EffectiveDataStartIndex : UDINT; (* Всегда 0 в payload-режиме *)
+    EffectiveDataEndIndex   : UDINT; (* Последний WORD payload *)
+    EffectiveDataWords      : UDINT; (* Количество WORD payload *)
     SendDoneCount : UDINT;       (* Счетчик успешно отправленных пакетов всего *)
     LastWordIndex : UDINT;       (* Индекс первого WORD в последнем отправленном пакете *)
     LastWordCount : WORD;        (* Количество WORD в последнем отправленном пакете *)
@@ -48,7 +42,7 @@ VAR_OUTPUT
 
     (* Диагностика *)
     DiagState                : UINT;       (* Текущее состояние автомата *)
-    DiagErrorSource          : UINT;       (* Источник ошибки: 0-none,1-localIP,2-remoteIP,3-localIP=0.0.0.0,4-peer,5-array,6-range/count,7-words>limit,8-send,9-maxPacketCalc,10-sendLen>udpMax *)
+    DiagErrorSource          : UINT;       (* Источник ошибки: 0-none,1-localIP,2-remoteIP,3-localIP=0.0.0.0,4-peer,5-invalid payload ptr/size,7-size>limit,8-send,9-maxPacketCalc,10-sendLen>udpMax *)
     DiagPeerEnable           : BOOL;       (* Разрешение запуска peer *)
     DiagPeerActive           : BOOL;       (* Состояние peer *)
     DiagPeerError            : BOOL;       (* Ошибка peer *)
@@ -98,14 +92,11 @@ VAR
     selectedEndIndex   : UDINT;
     selectedDataWords  : UDINT;
     selectedDataBytes  : UDINT;
-    dataLowerBound     : DINT;
-    dataUpperBound     : DINT;
     maxPayloadBytesByUdp : UDINT;
     maxWordsByUdp        : UINT;
     effectiveWordsPerPacket : UINT;
     effectiveMaxPacketBytes : UDINT;
     requestedPacketBytesForRange : UDINT;
-    sourceDirectPayload : BOOL;
 
     (* Буфер пакета *)
     packetHeader : ST_UdpPacketHeader;
@@ -122,8 +113,6 @@ VAR
     pSrcByte      : POINTER TO BYTE;
     pDstByte      : POINTER TO BYTE;
     pDstDataByte  : POINTER TO BYTE;
-    srcWordIndex  : UDINT;
-    srcAbsoluteIndex : DINT;
     wordsInPacketUdint : UDINT;
     bytesInPacket : UDINT;
     byteInWordIndex : UDINT;
@@ -265,72 +254,32 @@ CASE state OF
             RETURN;
         END_IF
 
-        sourceDirectPayload := (pPayloadData <> 0) AND (PayloadSizeBytes > 0);
-
-        IF sourceDirectPayload THEN
-            selectedStartIndex := 0;
-            selectedDataBytes := PayloadSizeBytes;
-            selectedDataWords := (selectedDataBytes + UDINT#1) / UDINT#2;
-            selectedEndIndex := selectedDataWords - UDINT#1;
-
-            SourceDataWords := selectedDataWords;
-            EffectiveDataStartIndex := selectedStartIndex;
-            EffectiveDataEndIndex := selectedEndIndex;
-            EffectiveDataWords := selectedDataWords;
-        ELSE
-            dataLowerBound := LOWER_BOUND(Data, 1);
-            dataUpperBound := UPPER_BOUND(Data, 1);
-
-            IF dataUpperBound < dataLowerBound THEN
-                Error := TRUE;
-                ErrorId := NBS.ERROR.WRONG_PARAMETER;
-                DiagErrorSource := 5;
-                state := 100;
-                RETURN;
-            END_IF
-
-            SourceDataWords := DINT_TO_UDINT(dataUpperBound - dataLowerBound + 1);
-            IF SourceDataWords = 0 THEN
-                Error := TRUE;
-                ErrorId := NBS.ERROR.WRONG_PARAMETER;
-                DiagErrorSource := 5;
-                state := 100;
-                RETURN;
-            END_IF
-
-            selectedStartIndex := DataStartIndex;
-            IF selectedStartIndex >= SourceDataWords THEN
-                selectedStartIndex := SourceDataWords - 1;
-            END_IF
-
-            selectedDataWords := DataCountRegister;
-            IF selectedDataWords = 0 THEN
-                Error := TRUE;
-                ErrorId := NBS.ERROR.WRONG_PARAMETER;
-                DiagErrorSource := 6;
-                state := 100;
-                RETURN;
-            END_IF
-
-            IF selectedDataWords > (SourceDataWords - selectedStartIndex) THEN
-                selectedDataWords := SourceDataWords - selectedStartIndex;
-            END_IF
-
-            IF selectedDataWords = 0 THEN
-                Error := TRUE;
-                ErrorId := NBS.ERROR.WRONG_PARAMETER;
-                DiagErrorSource := 6;
-                state := 100;
-                RETURN;
-            END_IF
-
-            selectedEndIndex := selectedStartIndex + selectedDataWords - UDINT#1;
-            selectedDataBytes := selectedDataWords * UDINT#2;
-
-            EffectiveDataStartIndex := selectedStartIndex;
-            EffectiveDataEndIndex := selectedEndIndex;
-            EffectiveDataWords := selectedDataWords;
+        IF (pPayloadData = 0) OR (PayloadSizeBytes = 0) THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_PARAMETER;
+            DiagErrorSource := 5;
+            state := 100;
+            RETURN;
         END_IF
+
+        selectedStartIndex := 0;
+        selectedDataBytes := PayloadSizeBytes;
+        selectedDataWords := (selectedDataBytes + UDINT#1) / UDINT#2;
+
+        IF selectedDataWords = 0 THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_PARAMETER;
+            DiagErrorSource := 5;
+            state := 100;
+            RETURN;
+        END_IF
+
+        selectedEndIndex := selectedDataWords - UDINT#1;
+
+        SourceDataWords := selectedDataWords;
+        EffectiveDataStartIndex := selectedStartIndex;
+        EffectiveDataEndIndex := selectedEndIndex;
+        EffectiveDataWords := selectedDataWords;
 
         requestedPacketBytesForRange := SIZEOF(packetHeader) + selectedDataBytes;
 
@@ -434,13 +383,7 @@ CASE state OF
             pDstByte := pDstByte + 1;
         END_FOR
 
-        IF sourceDirectPayload THEN
-            pSrcByte := pPayloadData + srcOffsetBytes;
-        ELSE
-            srcWordIndex := selectedStartIndex + srcOffsetWords;
-            srcAbsoluteIndex := dataLowerBound + UDINT_TO_DINT(srcWordIndex);
-            pSrcByte := ADR(Data[srcAbsoluteIndex]);
-        END_IF
+        pSrcByte := pPayloadData + srcOffsetBytes;
 
         pDstByte := ADR(packetPayload);
         FOR iByte := 0 TO bytesInPacket - UDINT#1 DO
