@@ -2,8 +2,10 @@
 VAR
     (* Тестовый массив данных: 35000 WORD *)
     DataArray : ARRAY[0..34999] OF WORD;
-
-    (* Массив экземпляров FB широковещательной UDP-передачи *)
+	AISettingsData : MAIN_SENSOR_AI_SETTINGS;                         (* Данные для FB №1 (ch=0) *)
+	PidData : PidSettings; 							                   (* Данные для FB №2 (ch=1) *)
+    
+	(* Массив экземпляров FB широковещательной UDP-передачи *)
     UdpBroadcast : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF FB_UdpWordBroadcast;
 
     (* Индексы циклов *)
@@ -13,19 +15,22 @@ VAR
     (* Триггер для однократного заполнения массива *)
     initDone : BOOL;
     cfgInitDone : BOOL;
+    
     startSendPrev : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF WORD;  (* Предыдущее значение start_send для детектора фронта *)
     startSendPulse : BOOL;                                     (* Односкановый импульс ручного запуска *)
     fbEnable : BOOL;                                           (* Итоговое разрешение FB на текущем канале *)
+    payloadPtr : POINTER TO BYTE;                              (* Указатель на payload текущего канала *)
+    payloadSizeBytes : UDINT;                                  (* Размер payload текущего канала, байт *)
 END_VAR
 
 // === IMPLEMENTATION ===
 
-IF NOT initDone THEN
-    FOR i := 0 TO 34999 DO
-        DataArray[i] := UDINT_TO_WORD(i MOD 65536);
-    END_FOR
-    initDone := TRUE;
-END_IF
+// IF NOT initDone THEN
+//     FOR i := 0 TO 34999 DO
+//         DataArray[i] := UDINT_TO_WORD(i MOD 65536);
+//     END_FOR
+//     initDone := TRUE;
+// END_IF
 
 (* Однократная загрузка дефолтов из udp_cfg в карту регистров Modbus (%MW0...) *)
 IF NOT cfgInitDone THEN
@@ -80,6 +85,22 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
     fbEnable := udp_common.enable_all AND
         (WORD_TO_BOOL(udp_cfg[ch].enable) OR startSendPulse OR udp_state[ch].busy);
 
+    (* Источник данных по умолчанию: структура канала Modbus *)
+    payloadPtr := ADR(udp_channel_modbus[ch]);
+    payloadSizeBytes := SIZEOF(udp_channel_modbus[ch]);
+
+    (* FB №1 (первый в массиве, ch=0) отправляет AISettingsData *)
+    IF ch = 0 THEN
+        payloadPtr := ADR(AISettingsData);
+        payloadSizeBytes := SIZEOF(AISettingsData);
+    END_IF
+
+	(* FB №2 (второй в массиве, ch=1) отправляет PidData *)
+    IF ch = 1 THEN
+        payloadPtr := ADR(PidData);
+        payloadSizeBytes := SIZEOF(PidData);
+    END_IF
+	
     UdpBroadcast[ch](
         Enable      := fbEnable,
         Signature   := udp_cfg[ch].signature,
@@ -94,6 +115,8 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
         Version     := udp_cfg[ch].header_version,
         PayloadEndianness := udp_cfg[ch].payload_endianness,
         InterPacketDelay := UDINT_TO_TIME(WORD_TO_UDINT(udp_cfg[ch].inter_packet_delay_ms)),
+        pPayloadData      := payloadPtr,
+        PayloadSizeBytes  := payloadSizeBytes,
         DataStartIndex    := WORD_TO_UDINT(udp_cfg[ch].udp_data_start_index),
         DataCountRegister := WORD_TO_UDINT(udp_cfg[ch].udp_data_count_register),
         Data := DataArray,
@@ -165,4 +188,3 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
     udp_channel_modbus[ch].state.diag_local_init_error := TO_WORD(udp_state[ch].diag_local_init_error);
     udp_channel_modbus[ch].state.diag_remote_init_error := TO_WORD(udp_state[ch].diag_remote_init_error);
 END_FOR
-

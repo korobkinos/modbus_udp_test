@@ -1,0 +1,50 @@
+﻿FUNCTION PackToWordArray : BOOL
+VAR_IN_OUT
+    Dst : ARRAY[*] OF WORD;   // сюда пишем (можно DataArray[0..34999])
+END_VAR
+VAR_INPUT
+    pSrc      : POINTER TO BYTE; // ADR(ваша_структура)
+    SrcSize   : UDINT;           // SIZEOF(ваша_структура), в байтах
+    StartWord : DINT;            // стартовый индекс WORD в Dst
+END_VAR
+VAR
+    lb, ub    : DINT;
+    freeBytes : UDINT;
+    pDst      : POINTER TO BYTE;
+    i         : UDINT;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+PackToWordArray := FALSE;
+
+lb := LOWER_BOUND(Dst, 1);
+ub := UPPER_BOUND(Dst, 1);
+
+IF (StartWord < lb) OR (StartWord > ub) THEN
+    RETURN;
+END_IF;
+
+IF pSrc = 0 THEN
+    RETURN;
+END_IF;
+
+freeBytes := TO_UDINT(ub - StartWord + 1) * SIZEOF(WORD);
+IF SrcSize > freeBytes THEN
+    RETURN;
+END_IF;
+
+// Побайтная копия через разыменование
+pDst := ADR(Dst[StartWord]);
+FOR i := 0 TO SrcSize - 1 DO
+    pDst^ := pSrc^;
+    pDst := pDst + 1;   // в CODESYS pointer + N = +N байт
+    pSrc := pSrc + 1;
+END_FOR;
+
+// Если нечетное число байт - обнулим "хвост" следующего байта
+IF (SrcSize MOD 2) = 1 THEN
+    pDst^ := 0;
+END_IF;
+
+PackToWordArray := TRUE;

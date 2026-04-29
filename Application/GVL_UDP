@@ -10,6 +10,8 @@ VAR_GLOBAL CONSTANT
     UDP_MB_CFG_WORDS : UINT := 16;       (* Размер блока настроек канала, WORD *)
     UDP_MB_STATE_WORDS : UINT := 32;     (* Размер блока состояний канала, WORD *)
     UDP_MB_CHANNEL_STRIDE_WORDS : UINT := 48; (* Полный размер блока канала (настройки+состояния), WORD *)
+	main_ai_quantity: WORD:= 128; (* Кол-во аналоговых сигналов в структуре *)
+	REGULATOR_QUANTITY: WORD:= 4; (* Кол-во регуляторов *)
 END_VAR
 
 VAR_GLOBAL
@@ -46,6 +48,7 @@ VAR_GLOBAL
       - inter_packet_delay_ms: пауза между пакетами внутри цикла
       - udp_data_start_index: старт индекса в общем массиве DataArray[0..34999]
       - udp_data_count_register: количество WORD для отправки из общего массива DataArray, начиная с udp_data_start_index
+
     *)
     udp_cfg : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastConfig := [
         (* Канал 0: AM01, порты 15001 -> 15000 *)
@@ -74,7 +77,7 @@ VAR_GLOBAL
         ),
         (* Канал 2: AM03, порты 15005 -> 15004 *)
         (
-            enable                 := 1,
+            enable                 := 0,
             signature              := 16#33304D41,  (* AM03 *)
             local_port             := 15005,
             remote_port            := 15004,
@@ -173,9 +176,5 @@ VAR_GLOBAL
     (* Состояние и диагностика каналов *)
     udp_state : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastState;
 END_VAR
-
-
-
-
 
 

@@ -1,0 +1,17 @@
+﻿TYPE SCALE_DATA :
+STRUCT
+	VALUE:	ARRAY[1..10] OF REAL;
+	(*
+	min_value:REAL;//Минимальное входное значение
+	max_value:REAL;//Максимальное входное значение
+	min_scale:REAL;//Минимум масштабирования
+	max_scale:REAL;//Максимум масштабирования
+	min_warning:REAL;//Минимум предупреждение
+	max_warning:REAL;//Максимум предупреждение
+	min_alarm:REAL;//Минимум тревога
+	max_alarm:REAL;//Максимум тревога
+	average:REAL;//Сглаживание входного значения
+	sensor_num:REAL;//Номер датчика
+	*)
+END_STRUCT
+END_TYPE

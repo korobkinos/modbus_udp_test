@@ -19,4 +19,3 @@ STRUCT
     udp_data_count_register  : WORD  := 35000;             (* Количество WORD для отправки, начиная с udp_data_start_index *)
 END_STRUCT
 END_TYPE
-
