@@ -2,7 +2,10 @@
 VAR
 	AISettingsData : MAIN_SENSOR_AI_SETTINGS;                         (* Данные для FB №1 (ch=0) *)
 	PidData : PidSettings; 							                   (* Данные для FB №2 (ch=1) *)
-    
+    PidData2 : PidSettings_1; 							                   (* Данные для FB №3 (ch=1) *)
+    PidData3 : PidSettings_2; 							                   (* Данные для FB №4 (ch=1) *)
+  
+   
 	(* Массив экземпляров FB широковещательной UDP-передачи *)
     UdpBroadcast : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF FB_UdpWordBroadcast;
 
@@ -10,8 +13,10 @@ VAR
     ch : UINT;
 
     cfgInitDone : BOOL;
+    commonCfgInitDone : BOOL;
     localIpInitDone : BOOL;
     detectedLocalIp : STRING(16);
+    broadcastIpFromModbus : STRING(16);
     
     startSendPrev : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF WORD;  (* Предыдущее значение start_send для детектора фронта *)
     startSendPulse : BOOL;                                     (* Односкановый импульс ручного запуска *)
@@ -29,6 +34,33 @@ IF NOT localIpInitDone THEN
         udp_common.local_ip := detectedLocalIp;
         localIpInitDone := TRUE;
     END_IF
+END_IF
+
+(* Однократная загрузка дефолта broadcast IP в общую карту Modbus (%MW480...) *)
+IF NOT commonCfgInitDone THEN
+    udp_common_modbus.broadcast_ip_0 := 192;
+    udp_common_modbus.broadcast_ip_1 := 168;
+    udp_common_modbus.broadcast_ip_2 := 4;
+    udp_common_modbus.broadcast_ip_3 := 255;
+    commonCfgInitDone := TRUE;
+END_IF
+
+(* Обновляем broadcast IP только при валидных октетах; при ошибке остается последний корректный IP. *)
+IF (udp_common_modbus.broadcast_ip_0 <= 255) AND
+   (udp_common_modbus.broadcast_ip_1 <= 255) AND
+   (udp_common_modbus.broadcast_ip_2 <= 255) AND
+   (udp_common_modbus.broadcast_ip_3 <= 255) AND
+   NOT ((udp_common_modbus.broadcast_ip_0 = 0) AND
+        (udp_common_modbus.broadcast_ip_1 = 0) AND
+        (udp_common_modbus.broadcast_ip_2 = 0) AND
+        (udp_common_modbus.broadcast_ip_3 = 0)) THEN
+    broadcastIpFromModbus := CONCAT(BYTE_TO_STRING(WORD_TO_BYTE(udp_common_modbus.broadcast_ip_0)), '.');
+    broadcastIpFromModbus := CONCAT(broadcastIpFromModbus, BYTE_TO_STRING(WORD_TO_BYTE(udp_common_modbus.broadcast_ip_1)));
+    broadcastIpFromModbus := CONCAT(broadcastIpFromModbus, '.');
+    broadcastIpFromModbus := CONCAT(broadcastIpFromModbus, BYTE_TO_STRING(WORD_TO_BYTE(udp_common_modbus.broadcast_ip_2)));
+    broadcastIpFromModbus := CONCAT(broadcastIpFromModbus, '.');
+    broadcastIpFromModbus := CONCAT(broadcastIpFromModbus, BYTE_TO_STRING(WORD_TO_BYTE(udp_common_modbus.broadcast_ip_3)));
+    udp_common.broadcast_ip := broadcastIpFromModbus;
 END_IF
 
 (* Однократная загрузка дефолтов из udp_cfg в карту регистров Modbus (%MW0...) *)
@@ -99,6 +131,19 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
         payloadPtr := ADR(PidData);
         payloadSizeBytes := SIZEOF(PidData);
     END_IF
+	
+	(* FB №3 (второй в массиве, ch=2) отправляет PidData *)
+    IF ch = 2 THEN
+        payloadPtr := ADR(PidData2);
+        payloadSizeBytes := SIZEOF(PidData2);
+    END_IF
+	
+	(* FB №4 (второй в массиве, ch=2) отправляет PidData *)
+    IF ch = 3 THEN
+        payloadPtr := ADR(PidData3);
+        payloadSizeBytes := SIZEOF(PidData3);
+    END_IF
+		
 	
     UdpBroadcast[ch](
         Enable      := fbEnable,

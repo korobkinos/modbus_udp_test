@@ -1,0 +1,13 @@
+﻿{attribute 'pack_mode' := '1'}
+(*
+  Common UDP settings in Holding Registers (Modbus).
+  Broadcast IP is stored as 4 separate WORD octets.
+*)
+TYPE ST_UdpBroadcastCommonModbus :
+STRUCT
+    broadcast_ip_0 : WORD;   (* First IP octet, example: 192 *)
+    broadcast_ip_1 : WORD;   (* Second IP octet, example: 168 *)
+    broadcast_ip_2 : WORD;   (* Third IP octet, example: 4 *)
+    broadcast_ip_3 : WORD;   (* Fourth IP octet, example: 255 *)
+END_STRUCT
+END_TYPE

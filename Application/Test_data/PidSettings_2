@@ -1,0 +1,5 @@
+﻿TYPE PidSettings_2 :
+STRUCT
+	Number			:	ARRAY[1..30] OF PidData;
+END_STRUCT
+END_TYPE
