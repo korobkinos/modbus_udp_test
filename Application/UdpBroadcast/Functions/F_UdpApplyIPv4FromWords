@@ -1,15 +1,15 @@
 ﻿FUNCTION F_UdpApplyIPv4FromWords : WORD
 VAR_INPUT
     Ip : ST_UdpIPv4Modbus;
-    PreviousIp1 : STRING(16) := '';
-    PreviousIp2 : STRING(16) := '';
-    PreviousIp3 : STRING(16) := '';
+    PreviousIp : ARRAY[1..4] OF STRING(16);
+    SlotIndex : UINT;
 END_VAR
 VAR_IN_OUT
     IpAddress : STRING(16);
 END_VAR
 VAR
     sIp : STRING(16);
+    i : UINT;
 END_VAR
 
 (* Проверяет 4 октета IP из Modbus и обновляет строку адреса.
@@ -39,12 +39,14 @@ sIp := CONCAT(sIp, BYTE_TO_STRING(WORD_TO_BYTE(Ip.octet_2)));
 sIp := CONCAT(sIp, '.');
 sIp := CONCAT(sIp, BYTE_TO_STRING(WORD_TO_BYTE(Ip.octet_3)));
 
-IF ((PreviousIp1 <> '') AND (sIp = PreviousIp1)) OR
-   ((PreviousIp2 <> '') AND (sIp = PreviousIp2)) OR
-   ((PreviousIp3 <> '') AND (sIp = PreviousIp3)) THEN
-    IpAddress := '';
-    F_UdpApplyIPv4FromWords := WORD#3;
-    RETURN;
+IF SlotIndex > UINT#1 THEN
+    FOR i := UINT#1 TO SlotIndex - UINT#1 DO
+        IF (PreviousIp[i] <> '') AND (sIp = PreviousIp[i]) THEN
+            IpAddress := '';
+            F_UdpApplyIPv4FromWords := WORD#3;
+            RETURN;
+        END_IF
+    END_FOR
 END_IF
 
 IpAddress := sIp;

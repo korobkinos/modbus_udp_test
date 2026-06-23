@@ -10,10 +10,7 @@ VAR_INPUT
     Enable      : BOOL;          (* Включение FB *)
     Signature   : DWORD;         (* Сигнатура протокола в заголовке пакета *)
     LocalIp     : STRING(255);   (* Локальный IP-адрес *)
-    BroadcastIp1 : STRING(255);  (* IP-адрес назначения 1 *)
-    BroadcastIp2 : STRING(255);  (* IP-адрес назначения 2 *)
-    BroadcastIp3 : STRING(255);  (* IP-адрес назначения 3 *)
-    BroadcastIp4 : STRING(255);  (* IP-адрес назначения 4 *)
+    BroadcastIp : ARRAY[1..4] OF STRING(16); (* IP-адреса назначения *)
     LocalPort   : UINT;          (* Локальный порт *)
     RemotePort  : UINT;          (* Удаленный порт *)
     MaxPacketBytesLimit : UDINT; (* Ограничение размера UDP-пакета в байтах (0 = теоретический максимум 65507) *)
@@ -70,19 +67,14 @@ VAR
 
     (* Компоненты NBS *)
     udpPeer     : NBS.UDP_Peer;
-    remoteAddr1 : NBS.IPv4Address;
-    remoteAddr2 : NBS.IPv4Address;
-    remoteAddr3 : NBS.IPv4Address;
-    remoteAddr4 : NBS.IPv4Address;
+    remoteAddr : ARRAY[1..4] OF NBS.IPv4Address;
     localAddr   : NBS.IPv4Address;
     localAddrInitError  : NBS.ERROR;
-    remoteAddrInitError1 : NBS.ERROR;
-    remoteAddrInitError2 : NBS.ERROR;
-    remoteAddrInitError3 : NBS.ERROR;
-    remoteAddrInitError4 : NBS.ERROR;
+    remoteAddrInitError : ARRAY[1..4] OF NBS.ERROR;
     peerEnable : BOOL;
-    targetEnabled : ARRAY[0..3] OF BOOL;
+    targetEnabled : ARRAY[1..4] OF BOOL;
     targetIndex : UINT;
+    targetScan : UINT;
     activeTargetCount : WORD;
 
     (* Состояние конечного автомата *)
@@ -156,7 +148,7 @@ IF NOT Enable THEN
     udpPeer(xEnable := FALSE);
     cycleStart := FALSE;
     cycleTimerEnable := FALSE;
-    targetIndex := 0;
+    targetIndex := 1;
     activeTargetCount := 0;
 
     SourceDataWords := 0;
@@ -208,43 +200,18 @@ END_IF
 
 // ------------------------------------------------------------
 localAddrInitError := localAddr.SetInitialValue(LocalIp);
-targetEnabled[0] := (BroadcastIp1 <> '') AND (BroadcastIp1 <> '0.0.0.0');
-targetEnabled[1] := (BroadcastIp2 <> '') AND (BroadcastIp2 <> '0.0.0.0');
-targetEnabled[2] := (BroadcastIp3 <> '') AND (BroadcastIp3 <> '0.0.0.0');
-targetEnabled[3] := (BroadcastIp4 <> '') AND (BroadcastIp4 <> '0.0.0.0');
 
 (* Считаем только активные адреса. Дубликаты уже очищены при применении Modbus IP. *)
 activeTargetCount := WORD#0;
-IF targetEnabled[0] THEN
-    activeTargetCount := activeTargetCount + WORD#1;
-END_IF
-IF targetEnabled[1] THEN
-    activeTargetCount := activeTargetCount + WORD#1;
-END_IF
-IF targetEnabled[2] THEN
-    activeTargetCount := activeTargetCount + WORD#1;
-END_IF
-IF targetEnabled[3] THEN
-    activeTargetCount := activeTargetCount + WORD#1;
-END_IF
+FOR targetScan := 1 TO 4 DO
+    targetEnabled[targetScan] := (BroadcastIp[targetScan] <> '') AND (BroadcastIp[targetScan] <> '0.0.0.0');
+    remoteAddrInitError[targetScan] := NBS.ERROR.NO_ERROR;
 
-remoteAddrInitError1 := NBS.ERROR.NO_ERROR;
-remoteAddrInitError2 := NBS.ERROR.NO_ERROR;
-remoteAddrInitError3 := NBS.ERROR.NO_ERROR;
-remoteAddrInitError4 := NBS.ERROR.NO_ERROR;
-
-IF targetEnabled[0] THEN
-    remoteAddrInitError1 := remoteAddr1.SetInitialValue(BroadcastIp1);
-END_IF
-IF targetEnabled[1] THEN
-    remoteAddrInitError2 := remoteAddr2.SetInitialValue(BroadcastIp2);
-END_IF
-IF targetEnabled[2] THEN
-    remoteAddrInitError3 := remoteAddr3.SetInitialValue(BroadcastIp3);
-END_IF
-IF targetEnabled[3] THEN
-    remoteAddrInitError4 := remoteAddr4.SetInitialValue(BroadcastIp4);
-END_IF
+    IF targetEnabled[targetScan] THEN
+        activeTargetCount := activeTargetCount + WORD#1;
+        remoteAddrInitError[targetScan] := remoteAddr[targetScan].SetInitialValue(BroadcastIp[targetScan]);
+    END_IF
+END_FOR
 
 peerEnable :=
     (localAddrInitError = NBS.ERROR.NO_ERROR) AND
@@ -265,15 +232,12 @@ DiagWordsPerPacketLimit := effectiveWordsPerPacket;
 DiagEffectivePacketBytesLimit := effectiveMaxPacketBytes;
 DiagLocalAddrInitError := localAddrInitError;
 DiagRemoteAddrInitError := NBS.ERROR.NO_ERROR;
-IF remoteAddrInitError1 <> NBS.ERROR.NO_ERROR THEN
-    DiagRemoteAddrInitError := remoteAddrInitError1;
-ELSIF remoteAddrInitError2 <> NBS.ERROR.NO_ERROR THEN
-    DiagRemoteAddrInitError := remoteAddrInitError2;
-ELSIF remoteAddrInitError3 <> NBS.ERROR.NO_ERROR THEN
-    DiagRemoteAddrInitError := remoteAddrInitError3;
-ELSIF remoteAddrInitError4 <> NBS.ERROR.NO_ERROR THEN
-    DiagRemoteAddrInitError := remoteAddrInitError4;
-END_IF
+FOR targetScan := 1 TO 4 DO
+    IF (DiagRemoteAddrInitError = NBS.ERROR.NO_ERROR) AND
+       (remoteAddrInitError[targetScan] <> NBS.ERROR.NO_ERROR) THEN
+        DiagRemoteAddrInitError := remoteAddrInitError[targetScan];
+    END_IF
+END_FOR
 
 // ------------------------------------------------------------
 CASE state OF
@@ -296,7 +260,7 @@ CASE state OF
             RETURN;
         END_IF
 
-        IF NOT (targetEnabled[0] OR targetEnabled[1] OR targetEnabled[2] OR targetEnabled[3]) THEN
+        IF activeTargetCount = WORD#0 THEN
             Error := TRUE;
             ErrorId := NBS.ERROR.WRONG_PARAMETER;
             DiagErrorSource := 2;
@@ -304,37 +268,15 @@ CASE state OF
             RETURN;
         END_IF
 
-        IF targetEnabled[0] AND (remoteAddrInitError1 <> NBS.ERROR.NO_ERROR) THEN
-            Error := TRUE;
-            ErrorId := remoteAddrInitError1;
-            DiagErrorSource := 2;
-            state := 100;
-            RETURN;
-        END_IF
-
-        IF targetEnabled[1] AND (remoteAddrInitError2 <> NBS.ERROR.NO_ERROR) THEN
-            Error := TRUE;
-            ErrorId := remoteAddrInitError2;
-            DiagErrorSource := 2;
-            state := 100;
-            RETURN;
-        END_IF
-
-        IF targetEnabled[2] AND (remoteAddrInitError3 <> NBS.ERROR.NO_ERROR) THEN
-            Error := TRUE;
-            ErrorId := remoteAddrInitError3;
-            DiagErrorSource := 2;
-            state := 100;
-            RETURN;
-        END_IF
-
-        IF targetEnabled[3] AND (remoteAddrInitError4 <> NBS.ERROR.NO_ERROR) THEN
-            Error := TRUE;
-            ErrorId := remoteAddrInitError4;
-            DiagErrorSource := 2;
-            state := 100;
-            RETURN;
-        END_IF
+        FOR targetScan := 1 TO 4 DO
+            IF targetEnabled[targetScan] AND (remoteAddrInitError[targetScan] <> NBS.ERROR.NO_ERROR) THEN
+                Error := TRUE;
+                ErrorId := remoteAddrInitError[targetScan];
+                DiagErrorSource := 2;
+                state := 100;
+                RETURN;
+            END_IF
+        END_FOR
 
         IF LocalIp = '0.0.0.0' THEN
             Error := TRUE;
@@ -534,7 +476,7 @@ CASE state OF
         PacketIndex   := currentPacket;
         LastWordIndex := selectedStartIndex + srcOffsetWords;
         LastWordCount := wordsInPacket;
-        targetIndex := 0;
+        targetIndex := 1;
         state := 30;
 
     30: (* SendPacket *)
@@ -547,14 +489,14 @@ CASE state OF
             RETURN;
         END_IF
 
-        WHILE targetIndex <= UINT#3 DO
+        WHILE targetIndex <= UINT#4 DO
             IF targetEnabled[targetIndex] THEN
                 EXIT;
             END_IF
             targetIndex := targetIndex + UINT#1;
         END_WHILE
 
-        IF targetIndex > UINT#3 THEN
+        IF targetIndex > UINT#4 THEN
             IF ((srcOffsetBytes + bytesInPacket) < selectedDataBytes) AND (InterPacketDelay > T#0MS) THEN
                 state := 40;
             ELSE
@@ -564,40 +506,13 @@ CASE state OF
         END_IF
 
         sendCount := 0;
-        CASE targetIndex OF
-            0:
-                sendResult := udpPeer.Send(
-                    itfIPAddress := remoteAddr1,
-                    uiPort       := RemotePort,
-                    pData        := ADR(packetTxBuffer),
-                    udiSize      := sendLen,
-                    udiCount     => sendCount
-                );
-            1:
-                sendResult := udpPeer.Send(
-                    itfIPAddress := remoteAddr2,
-                    uiPort       := RemotePort,
-                    pData        := ADR(packetTxBuffer),
-                    udiSize      := sendLen,
-                    udiCount     => sendCount
-                );
-            2:
-                sendResult := udpPeer.Send(
-                    itfIPAddress := remoteAddr3,
-                    uiPort       := RemotePort,
-                    pData        := ADR(packetTxBuffer),
-                    udiSize      := sendLen,
-                    udiCount     => sendCount
-                );
-            3:
-                sendResult := udpPeer.Send(
-                    itfIPAddress := remoteAddr4,
-                    uiPort       := RemotePort,
-                    pData        := ADR(packetTxBuffer),
-                    udiSize      := sendLen,
-                    udiCount     => sendCount
-                );
-        END_CASE
+        sendResult := udpPeer.Send(
+            itfIPAddress := remoteAddr[targetIndex],
+            uiPort       := RemotePort,
+            pData        := ADR(packetTxBuffer),
+            udiSize      := sendLen,
+            udiCount     => sendCount
+        );
 
         DiagSendExecute := TRUE;
         DiagSendBusy := FALSE;

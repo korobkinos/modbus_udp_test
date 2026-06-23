@@ -15,14 +15,9 @@
     <TypeSimple name="T_UDINT" size="4" swapsize="4" typeclass="UDInt" iecname="UDINT" />
     <TypeSimple name="T_UINT" size="2" swapsize="2" typeclass="UInt" iecname="UINT" />
     <TypeSimple name="T_WORD" size="2" swapsize="2" typeclass="Word" iecname="WORD" />
-    <TypeUserDef name="T_ST_UdpBroadcastCommon" size="325" nativesize="325" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastCommon">
-      <UserDefElement iecname="enable_all" type="T_BOOL" byteoffset="0" vartype="VAR" access="ReadWrite" />
-      <UserDefElement iecname="local_ip" type="T_STRING_255_" byteoffset="1" vartype="VAR" access="ReadWrite" />
-      <UserDefElement iecname="broadcast_ip_1" type="T_STRING_16_" byteoffset="257" vartype="VAR" access="ReadWrite" />
-      <UserDefElement iecname="broadcast_ip_2" type="T_STRING_16_" byteoffset="274" vartype="VAR" access="ReadWrite" />
-      <UserDefElement iecname="broadcast_ip_3" type="T_STRING_16_" byteoffset="291" vartype="VAR" access="ReadWrite" />
-      <UserDefElement iecname="broadcast_ip_4" type="T_STRING_16_" byteoffset="308" vartype="VAR" access="ReadWrite" />
-    </TypeUserDef>
+    <TypeArray name="T_ARRAY__1__4__OF_STRING_16_" size="68" nativesize="68" typeclass="Array" iecname="ARRAY [1..4] OF STRING(16)" basetype="T_STRING_16_">
+      <ArrayDim minrange="1" maxrange="4" />
+    </TypeArray>
     <TypeUserDef name="T_ST_UdpBroadcastConfigModbus" size="26" nativesize="24" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastConfigModbus">
       <UserDefElement iecname="enable" type="T_WORD" byteoffset="0" vartype="VAR" access="ReadWrite" />
       <UserDefElement iecname="signature" type="T_DWORD" byteoffset="4" vartype="VAR" access="ReadWrite" />
@@ -58,6 +53,11 @@
     <TypeUserDef name="T_ST_UdpBroadcastChannelModbus" size="34" nativesize="32" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastChannelModbus">
       <UserDefElement iecname="cfg" type="T_ST_UdpBroadcastConfigModbus" byteoffset="0" vartype="VAR" access="ReadWrite" />
       <UserDefElement iecname="state" type="T_ST_UdpBroadcastStateModbus" byteoffset="26" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ST_UdpBroadcastCommon" size="325" nativesize="325" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastCommon">
+      <UserDefElement iecname="enable_all" type="T_BOOL" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="local_ip" type="T_STRING_255_" byteoffset="1" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="broadcast_ip" type="T_ARRAY__1__4__OF_STRING_16_" byteoffset="257" vartype="VAR" access="ReadWrite" />
     </TypeUserDef>
     <TypeArray name="T_ARRAY__0__9__OF_ST_UdpBroadcastChannelModbus" size="360" nativesize="320" typeclass="Array" iecname="ARRAY [0..9] OF ST_UdpBroadcastChannelModbus" basetype="T_ST_UdpBroadcastChannelModbus">
       <ArrayDim minrange="0" maxrange="9" />

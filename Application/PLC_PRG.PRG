@@ -11,6 +11,7 @@ VAR
 
     (* Индексы циклов *)
     ch : UINT;
+    ipSlot : UINT;
 
     cfgInitDone : BOOL;
     localIpInitDone : BOOL;
@@ -36,28 +37,14 @@ END_IF
 
 (* Применяем IP-получателей из Modbus.
    Проверка и сборка строки IP находятся в отдельной функции. *)
-udp_common_modbus.target1_status := F_UdpApplyIPv4FromWords(
-    Ip := udp_common_modbus.target1_ip,
-    IpAddress := udp_common.broadcast_ip_1
-);
-udp_common_modbus.target2_status := F_UdpApplyIPv4FromWords(
-    Ip := udp_common_modbus.target2_ip,
-    PreviousIp1 := udp_common.broadcast_ip_1,
-    IpAddress := udp_common.broadcast_ip_2
-);
-udp_common_modbus.target3_status := F_UdpApplyIPv4FromWords(
-    Ip := udp_common_modbus.target3_ip,
-    PreviousIp1 := udp_common.broadcast_ip_1,
-    PreviousIp2 := udp_common.broadcast_ip_2,
-    IpAddress := udp_common.broadcast_ip_3
-);
-udp_common_modbus.target4_status := F_UdpApplyIPv4FromWords(
-    Ip := udp_common_modbus.target4_ip,
-    PreviousIp1 := udp_common.broadcast_ip_1,
-    PreviousIp2 := udp_common.broadcast_ip_2,
-    PreviousIp3 := udp_common.broadcast_ip_3,
-    IpAddress := udp_common.broadcast_ip_4
-);
+FOR ipSlot := 1 TO 4 DO
+    udp_common_modbus.target_status[ipSlot] := F_UdpApplyIPv4FromWords(
+        Ip := udp_common_modbus.target_ip[ipSlot],
+        PreviousIp := udp_common.broadcast_ip,
+        SlotIndex := ipSlot,
+        IpAddress := udp_common.broadcast_ip[ipSlot]
+    );
+END_FOR
 
 (* Однократная загрузка дефолтов из udp_cfg в карту регистров Modbus (%MW0...) *)
 IF NOT cfgInitDone THEN
@@ -119,10 +106,7 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
         Enable      := fbEnable,
         Signature   := udp_cfg[ch].signature,
         LocalIp     := udp_common.local_ip,
-        BroadcastIp1 := udp_common.broadcast_ip_1,
-        BroadcastIp2 := udp_common.broadcast_ip_2,
-        BroadcastIp3 := udp_common.broadcast_ip_3,
-        BroadcastIp4 := udp_common.broadcast_ip_4,
+        BroadcastIp := udp_common.broadcast_ip,
         LocalPort   := WORD_TO_UINT(udp_cfg[ch].local_port),
         RemotePort  := WORD_TO_UINT(udp_cfg[ch].remote_port),
         MaxPacketBytesLimit := WORD_TO_UDINT(udp_cfg[ch].max_packet_bytes_limit),
