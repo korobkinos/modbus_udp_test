@@ -1,0 +1,178 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Symbolconfiguration xmlns="http://www.3s-software.com/schemas/Symbolconfiguration.xsd">
+  <Header>
+    <Version>3.5.14.0</Version>
+    <SymbolConfigObject version="4.0.0.0" runtimeid="11.7.1.30" libversion="3.5.17.0" compiler="3.5.17.30" lmm="3.5.17.0" profile="Astra.IDE_V1.7+" settings="SupportOPCUA, LayoutCalculator=OptimizedClientSideLayoutCalculator" />
+    <ProjectInfo name="modbus_udp_example" devicename="REGUL_R500_51" appname="Application" />
+  </Header>
+  <TypeList>
+    <TypeUserDef name="T_IoDrvBase" size="0" nativesize="276" typeclass="Userdef" pouclass="FUNCTION_BLOCK" iecname="IoDrvBase" />
+    <TypeSimple name="T_BOOL" size="1" swapsize="0" typeclass="Bool" iecname="BOOL" />
+    <TypeSimple name="T_DWORD" size="4" swapsize="4" typeclass="DWord" iecname="DWORD" />
+    <TypeSimple name="T_INT" size="2" swapsize="2" typeclass="Int" iecname="INT" />
+    <TypeUserDef name="T_IoDrvPsModbusTcpSlave" size="0" nativesize="4488" typeclass="Userdef" pouclass="FUNCTION_BLOCK" iecname="IoDrvPsModbusTcpSlave" basetype="T_IoDrvBase" />
+    <TypeSimple name="T_STRING_255_" size="256" swapsize="0" typeclass="String" iecname="STRING(255)" />
+    <TypeSimple name="T_UDINT" size="4" swapsize="4" typeclass="UDInt" iecname="UDINT" />
+    <TypeSimple name="T_UINT" size="2" swapsize="2" typeclass="UInt" iecname="UINT" />
+    <TypeSimple name="T_WORD" size="2" swapsize="2" typeclass="Word" iecname="WORD" />
+    <TypeArray name="T_ARRAY__0__0__OF_WORD" size="2" nativesize="2" typeclass="Array" iecname="ARRAY [0..0] OF WORD" basetype="T_WORD">
+      <ArrayDim minrange="0" maxrange="0" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__0__1__OF_WORD" size="4" nativesize="4" typeclass="Array" iecname="ARRAY [0..1] OF WORD" basetype="T_WORD">
+      <ArrayDim minrange="0" maxrange="1" />
+    </TypeArray>
+    <TypeUserDef name="T_ERROR" size="2" nativesize="2" swapsize="2" typeclass="Enum" iecname="ERROR" basetype="T_INT">
+      <UserDefElement type="T_ERROR" iecname="NO_ERROR" enumvalue="0" />
+      <UserDefElement type="T_ERROR" iecname="TIME_OUT" enumvalue="1" />
+      <UserDefElement type="T_ERROR" iecname="PENDING" enumvalue="2" />
+      <UserDefElement type="T_ERROR" iecname="WRONG_CONFIGURATION" enumvalue="3" />
+      <UserDefElement type="T_ERROR" iecname="TASK_CREATION_FAILED" enumvalue="4" />
+      <UserDefElement type="T_ERROR" iecname="EVENT_CREATION_FAILED" enumvalue="5" />
+      <UserDefElement type="T_ERROR" iecname="WRONG_PARAMETER" enumvalue="6" />
+      <UserDefElement type="T_ERROR" iecname="NOT_FROM_A_POOL" enumvalue="7" />
+      <UserDefElement type="T_ERROR" iecname="CONNECTION_ERROR" enumvalue="8" />
+      <UserDefElement type="T_ERROR" iecname="FIONBIO_NOT_POSSIBLE" enumvalue="9" />
+      <UserDefElement type="T_ERROR" iecname="SNI_NOT_POSSIBLE" enumvalue="10" />
+      <UserDefElement type="T_ERROR" iecname="ALREADY_OPENED" enumvalue="11" />
+      <UserDefElement type="T_ERROR" iecname="SEND_ERROR" enumvalue="12" />
+      <UserDefElement type="T_ERROR" iecname="RECEIVE_ERROR" enumvalue="13" />
+      <UserDefElement type="T_ERROR" iecname="CONNECTION_LOST" enumvalue="14" />
+      <UserDefElement type="T_ERROR" iecname="NO_MEMORY" enumvalue="15" />
+      <UserDefElement type="T_ERROR" iecname="ALREADY_ACTIVE" enumvalue="16" />
+      <UserDefElement type="T_ERROR" iecname="NOT_ENABLED" enumvalue="17" />
+      <UserDefElement type="T_ERROR" iecname="WRITE_ERROR" enumvalue="18" />
+      <UserDefElement type="T_ERROR" iecname="READ_ERROR" enumvalue="19" />
+      <UserDefElement type="T_ERROR" iecname="UNKNOWN_HOSTNAME" enumvalue="20" />
+      <UserDefElement type="T_ERROR" iecname="FATAL_ERROR" enumvalue="21" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ST_UdpBroadcastCommon" size="513" nativesize="513" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastCommon">
+      <UserDefElement iecname="enable_all" type="T_BOOL" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="local_ip" type="T_STRING_255_" byteoffset="1" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="broadcast_ip" type="T_STRING_255_" byteoffset="257" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ST_UdpBroadcastConfig" size="30" nativesize="32" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastConfig">
+      <UserDefElement iecname="enable" type="T_WORD" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="signature" type="T_DWORD" byteoffset="4" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="local_port" type="T_WORD" byteoffset="8" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="remote_port" type="T_WORD" byteoffset="10" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="max_packet_bytes_limit" type="T_WORD" byteoffset="12" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="period_ms" type="T_WORD" byteoffset="14" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="start_send" type="T_WORD" byteoffset="16" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="header_packet_type" type="T_WORD" byteoffset="18" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="header_version" type="T_WORD" byteoffset="20" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="payload_endianness" type="T_WORD" byteoffset="22" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="inter_packet_delay_ms" type="T_WORD" byteoffset="24" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="reserved_data_0" type="T_WORD" byteoffset="26" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="reserved_data_1" type="T_WORD" byteoffset="28" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeArray name="T_ARRAY__0__9__OF_ST_UdpBroadcastConfig" size="320" nativesize="320" typeclass="Array" iecname="ARRAY [0..9] OF ST_UdpBroadcastConfig" basetype="T_ST_UdpBroadcastConfig">
+      <ArrayDim minrange="0" maxrange="9" />
+    </TypeArray>
+    <TypeUserDef name="T_ST_UdpBroadcastConfigModbus" size="34" nativesize="32" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastConfigModbus">
+      <UserDefElement iecname="enable" type="T_WORD" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="signature" type="T_DWORD" byteoffset="4" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="local_port" type="T_WORD" byteoffset="8" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="remote_port" type="T_WORD" byteoffset="10" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="max_packet_bytes_limit" type="T_WORD" byteoffset="12" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="period_ms" type="T_WORD" byteoffset="14" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="start_send" type="T_WORD" byteoffset="16" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="reserved_data_0" type="T_WORD" byteoffset="18" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="reserved_data_1" type="T_WORD" byteoffset="20" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="packet_type" type="T_WORD" byteoffset="22" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="version" type="T_WORD" byteoffset="24" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="payload_endianness" type="T_WORD" byteoffset="26" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="inter_packet_delay_ms" type="T_WORD" byteoffset="28" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="reserved" type="T_ARRAY__0__1__OF_WORD" byteoffset="30" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ST_UdpBroadcastState" size="80" nativesize="80" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastState">
+      <UserDefElement iecname="active" type="T_BOOL" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="busy" type="T_BOOL" byteoffset="1" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="error" type="T_BOOL" byteoffset="2" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="error_id" type="T_ERROR" byteoffset="4" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="sequence_id" type="T_UDINT" byteoffset="8" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="packet_index" type="T_WORD" byteoffset="12" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="packet_count" type="T_WORD" byteoffset="14" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="send_count" type="T_UDINT" byteoffset="16" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="source_data_words" type="T_UDINT" byteoffset="20" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="effective_data_start_index" type="T_UDINT" byteoffset="24" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="effective_data_end_index" type="T_UDINT" byteoffset="28" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="effective_data_words" type="T_UDINT" byteoffset="32" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="last_word_index" type="T_UDINT" byteoffset="36" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="last_word_count" type="T_WORD" byteoffset="40" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="cycle_done" type="T_BOOL" byteoffset="42" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_state" type="T_UINT" byteoffset="44" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_error_source" type="T_UINT" byteoffset="46" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_peer_enable" type="T_BOOL" byteoffset="48" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_peer_active" type="T_BOOL" byteoffset="49" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_peer_error" type="T_BOOL" byteoffset="50" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_peer_error_id" type="T_ERROR" byteoffset="52" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_send_execute" type="T_BOOL" byteoffset="54" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_send_busy" type="T_BOOL" byteoffset="55" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_send_error" type="T_BOOL" byteoffset="56" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_send_error_id" type="T_ERROR" byteoffset="58" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_send_count" type="T_UDINT" byteoffset="60" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_send_length" type="T_UDINT" byteoffset="64" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_words_per_packet_limit" type="T_UINT" byteoffset="68" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_effective_packet_bytes_limit" type="T_UDINT" byteoffset="72" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_local_init_error" type="T_ERROR" byteoffset="76" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_remote_init_error" type="T_ERROR" byteoffset="78" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ST_UdpBroadcastStateModbus" size="64" nativesize="64" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastStateModbus">
+      <UserDefElement iecname="active" type="T_WORD" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="busy" type="T_WORD" byteoffset="2" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="error" type="T_WORD" byteoffset="4" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="error_id" type="T_WORD" byteoffset="6" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="sequence_id" type="T_WORD" byteoffset="8" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="packet_index" type="T_WORD" byteoffset="10" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="packet_count" type="T_WORD" byteoffset="12" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="source_data_words" type="T_WORD" byteoffset="14" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="effective_data_start_index" type="T_WORD" byteoffset="16" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="effective_data_end_index" type="T_WORD" byteoffset="18" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="effective_data_words" type="T_WORD" byteoffset="20" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="send_count" type="T_WORD" byteoffset="22" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="last_word_index" type="T_WORD" byteoffset="24" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="last_word_count" type="T_WORD" byteoffset="26" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="cycle_done" type="T_WORD" byteoffset="28" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_state" type="T_WORD" byteoffset="30" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_error_source" type="T_WORD" byteoffset="32" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_peer_enable" type="T_WORD" byteoffset="34" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_peer_active" type="T_WORD" byteoffset="36" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_peer_error" type="T_WORD" byteoffset="38" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_peer_error_id" type="T_WORD" byteoffset="40" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_send_execute" type="T_WORD" byteoffset="42" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_send_busy" type="T_WORD" byteoffset="44" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_send_error" type="T_WORD" byteoffset="46" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_send_error_id" type="T_WORD" byteoffset="48" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_send_count" type="T_WORD" byteoffset="50" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_send_length" type="T_WORD" byteoffset="52" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_words_per_packet_limit" type="T_WORD" byteoffset="54" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_effective_packet_bytes_limit" type="T_WORD" byteoffset="56" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_local_init_error" type="T_WORD" byteoffset="58" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="diag_remote_init_error" type="T_WORD" byteoffset="60" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="reserved" type="T_ARRAY__0__0__OF_WORD" byteoffset="62" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeArray name="T_ARRAY__0__9__OF_ST_UdpBroadcastState" size="800" nativesize="800" typeclass="Array" iecname="ARRAY [0..9] OF ST_UdpBroadcastState" basetype="T_ST_UdpBroadcastState">
+      <ArrayDim minrange="0" maxrange="9" />
+    </TypeArray>
+    <TypeUserDef name="T_ST_UdpBroadcastChannelModbus" size="98" nativesize="96" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastChannelModbus">
+      <UserDefElement iecname="cfg" type="T_ST_UdpBroadcastConfigModbus" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="state" type="T_ST_UdpBroadcastStateModbus" byteoffset="34" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeArray name="T_ARRAY__0__9__OF_ST_UdpBroadcastChannelModbus" size="1000" nativesize="960" typeclass="Array" iecname="ARRAY [0..9] OF ST_UdpBroadcastChannelModbus" basetype="T_ST_UdpBroadcastChannelModbus">
+      <ArrayDim minrange="0" maxrange="9" />
+    </TypeArray>
+  </TypeList>
+  <NodeList>
+    <Node name="Application">
+      <Node name="GVL_UDP">
+        <Node name="udp_cfg" type="T_ARRAY__0__9__OF_ST_UdpBroadcastConfig" access="ReadWrite" />
+        <Node name="udp_channel_modbus" type="T_ARRAY__0__9__OF_ST_UdpBroadcastChannelModbus" access="ReadWrite" directaddress="%MB0" />
+        <Node name="udp_common" type="T_ST_UdpBroadcastCommon" access="ReadWrite" />
+        <Node name="udp_state" type="T_ARRAY__0__9__OF_ST_UdpBroadcastState" access="ReadWrite" />
+      </Node>
+      <Node name="IoConfig_Globals">
+        <Node name="Modbus_TCP_Slave" type="T_IoDrvPsModbusTcpSlave" access="ReadWrite" />
+      </Node>
+    </Node>
+  </NodeList>
+</Symbolconfiguration>
