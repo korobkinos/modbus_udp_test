@@ -1,0 +1,12 @@
+﻿{attribute 'pack_mode' := '1'}
+(*
+  IPv4-адрес в Modbus: 4 WORD-октета.
+*)
+TYPE ST_UdpIPv4Modbus :
+STRUCT
+    octet_0 : WORD := 0;
+    octet_1 : WORD := 0;
+    octet_2 : WORD := 0;
+    octet_3 : WORD := 0;
+END_STRUCT
+END_TYPE

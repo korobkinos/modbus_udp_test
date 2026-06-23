@@ -1,0 +1,39 @@
+﻿FUNCTION F_UdpApplyIPv4FromWords : WORD
+VAR_INPUT
+    Ip : ST_UdpIPv4Modbus;
+END_VAR
+VAR_IN_OUT
+    IpAddress : STRING(16);
+END_VAR
+VAR
+    sIp : STRING(16);
+END_VAR
+
+(* Проверяет 4 октета IP из Modbus и обновляет строку адреса.
+   Статус: 0 = используется, 1 = не используется (0.0.0.0), 2 = ошибка IP.
+   При статусах 1 и 2 строка очищается, и FB пропускает этот адрес. *)
+F_UdpApplyIPv4FromWords := WORD#2;
+
+IF (Ip.octet_0 > WORD#255) OR
+   (Ip.octet_1 > WORD#255) OR
+   (Ip.octet_2 > WORD#255) OR
+   (Ip.octet_3 > WORD#255) THEN
+    IpAddress := '';
+    RETURN;
+END_IF
+
+IF (Ip.octet_0 = 0) AND (Ip.octet_1 = 0) AND (Ip.octet_2 = 0) AND (Ip.octet_3 = 0) THEN
+    IpAddress := '';
+    F_UdpApplyIPv4FromWords := WORD#1;
+    RETURN;
+END_IF
+
+sIp := CONCAT(BYTE_TO_STRING(WORD_TO_BYTE(Ip.octet_0)), '.');
+sIp := CONCAT(sIp, BYTE_TO_STRING(WORD_TO_BYTE(Ip.octet_1)));
+sIp := CONCAT(sIp, '.');
+sIp := CONCAT(sIp, BYTE_TO_STRING(WORD_TO_BYTE(Ip.octet_2)));
+sIp := CONCAT(sIp, '.');
+sIp := CONCAT(sIp, BYTE_TO_STRING(WORD_TO_BYTE(Ip.octet_3)));
+
+IpAddress := sIp;
+F_UdpApplyIPv4FromWords := WORD#0;

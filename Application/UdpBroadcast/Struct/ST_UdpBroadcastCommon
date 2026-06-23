@@ -4,8 +4,11 @@
 *)
 TYPE ST_UdpBroadcastCommon :
 STRUCT
-    enable_all   : BOOL := TRUE;                           (* Общий глобальный enable для всех каналов *)
-    local_ip     : STRING(255) := '192.168.4.220';        (* Локальный IP ПЛК *)
-    broadcast_ip : STRING(255) := '192.168.4.255';        (* Адрес назначения (обычно broadcast) *)
+    enable_all     : BOOL := TRUE;                    (* Общий глобальный enable для всех каналов *)
+    local_ip       : STRING(255) := '192.168.4.220';  (* Локальный IP ПЛК *)
+    broadcast_ip_1 : STRING(16);                      (* Рабочий IP-адрес назначения 1 *)
+    broadcast_ip_2 : STRING(16);                      (* Рабочий IP-адрес назначения 2 *)
+    broadcast_ip_3 : STRING(16);                      (* Рабочий IP-адрес назначения 3 *)
+    broadcast_ip_4 : STRING(16);                      (* Рабочий IP-адрес назначения 4 *)
 END_STRUCT
 END_TYPE

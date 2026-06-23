@@ -11,11 +11,9 @@ STRUCT
     max_packet_bytes_limit : WORD  := 1472;                (* Лимит размера UDP-пакета, байт. 0 = авто (до 65507) *)
     period_ms              : WORD  := 2000;                (* Период автозапуска цикла, миллисекунды *)
     start_send             : WORD  := 0;                    (* Ручной запуск цикла по фронту 0->1: 0/1 *)
-    header_packet_type     : WORD  := 1;                   (* Тип пакета в заголовке *)
-    header_version         : WORD  := 1;                   (* Версия протокола в заголовке *)
+    packet_type            : WORD  := 1;                   (* Тип пакета в заголовке *)
+    version                : WORD  := 1;                   (* Версия протокола в заголовке *)
     payload_endianness     : WORD  := 0;                   (* Порядок байт в WORD payload: 0=little, 1=swap bytes *)
     inter_packet_delay_ms  : WORD  := 0;                   (* Пауза между пакетами внутри цикла, мс *)
-    reserved_data_0          : WORD  := 0;                 (* Резерв (legacy: udp_data_start_index) *)
-    reserved_data_1          : WORD  := 0;                 (* Резерв (legacy: udp_data_count_register) *)
 END_STRUCT
 END_TYPE

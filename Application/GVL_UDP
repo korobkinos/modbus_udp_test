@@ -2,16 +2,16 @@
   Глобальные данные UDP-рассылки:
   - общие настройки для всех каналов
   - индивидуальные настройки по каналам
-  - состояние и диагностика по каналам
+  - состояние по каналам
 *)
 VAR_GLOBAL CONSTANT
     UDP_CHANNEL_COUNT : UINT := 10;  (* Количество каналов в массиве UdpBroadcast *)
     UDP_MB_CHANNEL_START_MW : UINT := 0; (* Стартовый адрес Modbus-карты каналов *)
-    UDP_MB_CFG_WORDS : UINT := 16;       (* Размер блока настроек канала, WORD *)
-    UDP_MB_STATE_WORDS : UINT := 32;     (* Размер блока состояний канала, WORD *)
-    UDP_MB_CHANNEL_STRIDE_WORDS : UINT := 48; (* Полный размер блока канала (настройки+состояния), WORD *)
-    UDP_MB_COMMON_START_MW : UINT := 480; (* Стартовый адрес общей Modbus-карты UDP, после каналов %MW0..%MW479 *)
-    UDP_MB_COMMON_WORDS : UINT := 4;      (* Размер общей Modbus-карты UDP, WORD *)
+    UDP_MB_CFG_WORDS : UINT := 12;       (* Размер блока настроек канала, WORD *)
+    UDP_MB_STATE_WORDS : UINT := 3;      (* Размер блока состояний канала, WORD *)
+    UDP_MB_CHANNEL_STRIDE_WORDS : UINT := 15; (* Полный размер блока канала (настройки+состояния), WORD *)
+    UDP_MB_COMMON_START_MW : UINT := 150; (* Стартовый адрес общей Modbus-карты UDP, после каналов %MW0..%MW149 *)
+    UDP_MB_COMMON_WORDS : UINT := 20;     (* Размер общей Modbus-карты UDP, WORD *)
 	main_ai_quantity: WORD:= 128; (* Кол-во аналоговых сигналов в структуре *)
 	REGULATOR_QUANTITY: WORD:= 4; (* Кол-во регуляторов *)
 END_VAR
@@ -20,24 +20,24 @@ VAR_GLOBAL
 
     (* Общие настройки для всех экземпляров FB *)
     udp_common : ST_UdpBroadcastCommon := (
-        enable_all   := TRUE,
-        local_ip     := '192.168.4.220',
-        broadcast_ip := '192.168.4.255'
+        enable_all     := TRUE,
+        local_ip       := '192.168.4.220'
     );
 
     (*
       Общая Modbus-карта UDP.
-      Не пересекается с каналами: 10 каналов * 48 WORD = %MW0..%MW479.
-      %MW480..%MW483: broadcast_ip_0..broadcast_ip_3.
+      Не пересекается с каналами: 10 каналов * 15 WORD = %MW0..%MW149.
+      %MW150..%MW165: 4 IP-адреса назначения по 4 WORD.
+      %MW166..%MW169: статус IP-слотов (0=используется, 1=не используется, 2=ошибка IP).
     *)
-    udp_common_modbus AT %MW480 : ST_UdpBroadcastCommonModbus;
+    udp_common_modbus AT %MW150 : ST_UdpBroadcastCommonModbus;
 
     (*
       Modbus-карта каналов (настройки + состояния).
       Привязка начинается с %MW0.
-      Один канал занимает 48 регистров:
-      - cfg:   16 WORD
-      - state: 32 WORD
+      Один канал занимает 15 регистров:
+      - cfg:   12 WORD
+      - state: 3 WORD
       База канала ch: MW(UDP_MB_CHANNEL_START_MW + ch * UDP_MB_CHANNEL_STRIDE_WORDS).
     *)
     udp_channel_modbus AT %MW0 : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastChannelModbus;
@@ -52,13 +52,12 @@ VAR_GLOBAL
       - max_packet_bytes_limit: лимит UDP-пакета, байт (0 = авто до 65507)
       - period_ms: период автозапуска цикла, мс
       - start_send: ручной запуск цикла по фронту 0->1
-      - header_packet_type/header_version: поля заголовка
+      - packet_type/version: поля заголовка
       - payload_endianness: порядок байт в WORD payload
       - inter_packet_delay_ms: пауза между пакетами внутри цикла
-      - reserved_data_0/reserved_data_1: резерв для совместимости
 
     *)
-    udp_cfg : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastConfig := [
+    udp_cfg : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastConfigModbus := [
         (* Канал 0: AM01*)
         (
             enable                 := 1,

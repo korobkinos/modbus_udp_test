@@ -1,13 +1,20 @@
 ﻿{attribute 'pack_mode' := '1'}
 (*
-  Common UDP settings in Holding Registers (Modbus).
-  Broadcast IP is stored as 4 separate WORD octets.
+  Общие настройки UDP в Holding Registers (Modbus).
+  4 IP-адреса приемников хранятся как WORD-октеты.
+  0.0.0.0 выключает соответствующий слот.
 *)
 TYPE ST_UdpBroadcastCommonModbus :
 STRUCT
-    broadcast_ip_0 : WORD;   (* First IP octet, example: 192 *)
-    broadcast_ip_1 : WORD;   (* Second IP octet, example: 168 *)
-    broadcast_ip_2 : WORD;   (* Third IP octet, example: 4 *)
-    broadcast_ip_3 : WORD;   (* Fourth IP octet, example: 255 *)
+    target1_ip : ST_UdpIPv4Modbus := (octet_0 := 192, octet_1 := 168, octet_2 := 4, octet_3 := 255);
+    target2_ip : ST_UdpIPv4Modbus;
+    target3_ip : ST_UdpIPv4Modbus;
+    target4_ip : ST_UdpIPv4Modbus;
+
+    (* Статус IP-слота: 0 = используется, 1 = не используется, 2 = ошибка IP. *)
+    target1_status : WORD := 0;
+    target2_status : WORD := 1;
+    target3_status : WORD := 1;
+    target4_status : WORD := 1;
 END_STRUCT
 END_TYPE
