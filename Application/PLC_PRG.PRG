@@ -138,6 +138,7 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
         Busy          => udp_state[ch].busy,
         PacketCount   => udp_state[ch].packet_count,
         SendDoneCount => udp_state[ch].send_count,
+        LastCycleTimeMs => udp_state[ch].last_cycle_time_ms,
         DiagErrorSource => udp_state[ch].error_code
     );
 
@@ -145,4 +146,5 @@ FOR ch := 0 TO UDP_CHANNEL_COUNT - 1 DO
     udp_channel_modbus[ch].state.packet_count := udp_state[ch].packet_count;
     udp_channel_modbus[ch].state.send_count := UDINT_TO_WORD(udp_state[ch].send_count);
     udp_channel_modbus[ch].state.error_code := UINT_TO_WORD(udp_state[ch].error_code);
+    udp_channel_modbus[ch].state.last_cycle_time_ms := udp_state[ch].last_cycle_time_ms;
 END_FOR

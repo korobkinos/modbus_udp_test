@@ -8,5 +8,6 @@ STRUCT
     packet_count : WORD;    (* Кол-во отправок в цикле с учетом активных IP *)
     send_count   : UDINT;   (* Счетчик успешно отправленных пакетов *)
     error_code   : UINT;    (* Код источника ошибки FB: 0..10 *)
+    last_cycle_time_ms : WORD; (* Время предыдущего успешного цикла отправки, мс *)
 END_STRUCT
 END_TYPE

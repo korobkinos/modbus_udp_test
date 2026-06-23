@@ -8,9 +8,9 @@ VAR_GLOBAL CONSTANT
     UDP_CHANNEL_COUNT : UINT := 10;  (* Количество каналов в массиве UdpBroadcast *)
     UDP_MB_CHANNEL_START_MW : UINT := 0; (* Стартовый адрес Modbus-карты каналов *)
     UDP_MB_CFG_WORDS : UINT := 12;       (* Размер блока настроек канала, WORD *)
-    UDP_MB_STATE_WORDS : UINT := 3;      (* Размер блока состояний канала, WORD *)
-    UDP_MB_CHANNEL_STRIDE_WORDS : UINT := 15; (* Полный размер блока канала (настройки+состояния), WORD *)
-    UDP_MB_COMMON_START_MW : UINT := 150; (* Стартовый адрес общей Modbus-карты UDP, после каналов %MW0..%MW149 *)
+    UDP_MB_STATE_WORDS : UINT := 4;      (* Размер блока состояний канала, WORD *)
+    UDP_MB_CHANNEL_STRIDE_WORDS : UINT := 16; (* Полный размер блока канала (настройки+состояния), WORD *)
+    UDP_MB_COMMON_START_MW : UINT := 160; (* Стартовый адрес общей Modbus-карты UDP, после каналов %MW0..%MW159 *)
     UDP_MB_COMMON_WORDS : UINT := 20;     (* Размер общей Modbus-карты UDP, WORD *)
 	main_ai_quantity: WORD:= 128; (* Кол-во аналоговых сигналов в структуре *)
 	REGULATOR_QUANTITY: WORD:= 4; (* Кол-во регуляторов *)
@@ -26,18 +26,18 @@ VAR_GLOBAL
 
     (*
       Общая Modbus-карта UDP.
-      Не пересекается с каналами: 10 каналов * 15 WORD = %MW0..%MW149.
-      %MW150..%MW165: 4 IP-адреса назначения по 4 WORD.
-      %MW166..%MW169: статус IP-слотов (0=используется, 1=не используется, 2=ошибка IP, 3=дубликат IP).
+      Не пересекается с каналами: 10 каналов * 16 WORD = %MW0..%MW159.
+      %MW160..%MW175: 4 IP-адреса назначения по 4 WORD.
+      %MW176..%MW179: статус IP-слотов (0=используется, 1=не используется, 2=ошибка IP, 3=дубликат IP).
     *)
-    udp_common_modbus AT %MW150 : ST_UdpBroadcastCommonModbus;
+    udp_common_modbus AT %MW160 : ST_UdpBroadcastCommonModbus;
 
     (*
       Modbus-карта каналов (настройки + состояния).
       Привязка начинается с %MW0.
-      Один канал занимает 15 регистров:
+      Один канал занимает 16 регистров:
       - cfg:   12 WORD
-      - state: 3 WORD
+      - state: 4 WORD
       База канала ch: MW(UDP_MB_CHANNEL_START_MW + ch * UDP_MB_CHANNEL_STRIDE_WORDS).
     *)
     udp_channel_modbus AT %MW0 : ARRAY[0..UDP_CHANNEL_COUNT - 1] OF ST_UdpBroadcastChannelModbus;

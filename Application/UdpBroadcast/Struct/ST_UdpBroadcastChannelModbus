@@ -2,8 +2,8 @@
 (*
   Полный Modbus-блок одного канала UDP:
   - cfg   : настройки канала (12 WORD)
-  - state : состояние канала (3 WORD)
-  Итого: 15 WORD на канал.
+  - state : состояние канала (4 WORD)
+  Итого: 16 WORD на канал.
 *)
 TYPE ST_UdpBroadcastChannelModbus :
 STRUCT
