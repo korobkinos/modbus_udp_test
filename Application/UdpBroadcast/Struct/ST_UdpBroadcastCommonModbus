@@ -11,7 +11,7 @@ STRUCT
     target3_ip : ST_UdpIPv4Modbus;
     target4_ip : ST_UdpIPv4Modbus;
 
-    (* Статус IP-слота: 0 = используется, 1 = не используется, 2 = ошибка IP. *)
+    (* Статус IP-слота: 0 = используется, 1 = не используется, 2 = ошибка IP, 3 = дубликат IP. *)
     target1_status : WORD := 0;
     target2_status : WORD := 1;
     target3_status : WORD := 1;

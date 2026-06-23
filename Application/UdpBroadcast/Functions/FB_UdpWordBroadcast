@@ -33,7 +33,7 @@ VAR_OUTPUT
     ErrorId       : NBS.ERROR;   (* Код ошибки *)
     SequenceId    : UDINT;       (* Текущий номер цикла передачи *)
     PacketIndex   : WORD;        (* Индекс текущего отправляемого пакета *)
-    PacketCount   : WORD;        (* Всего пакетов в текущем цикле *)
+    PacketCount   : WORD;        (* Всего отправок в текущем цикле с учетом активных IP *)
     SourceDataWords : UDINT;     (* Размер payload в WORD (округление вверх по байтам) *)
     EffectiveDataStartIndex : UDINT; (* Всегда 0 в payload-режиме *)
     EffectiveDataEndIndex   : UDINT; (* Последний WORD payload *)
@@ -82,6 +82,7 @@ VAR
     peerEnable : BOOL;
     targetEnabled : ARRAY[0..3] OF BOOL;
     targetIndex : UINT;
+    activeTargetCount : WORD;
 
     (* Состояние конечного автомата *)
     state       : UINT;
@@ -108,6 +109,7 @@ VAR
     effectiveWordsPerPacket : UINT;
     effectiveMaxPacketBytes : UDINT;
     requestedPacketBytesForRange : UDINT;
+    totalSendPackets : UDINT;
 
     (* Буфер пакета *)
     packetHeader : ST_UdpPacketHeader;
@@ -149,6 +151,7 @@ IF NOT Enable THEN
     udpPeer(xEnable := FALSE);
     cycleStart := FALSE;
     targetIndex := 0;
+    activeTargetCount := 0;
 
     SourceDataWords := 0;
     EffectiveDataStartIndex := 0;
@@ -199,6 +202,21 @@ targetEnabled[0] := (BroadcastIp1 <> '') AND (BroadcastIp1 <> '0.0.0.0');
 targetEnabled[1] := (BroadcastIp2 <> '') AND (BroadcastIp2 <> '0.0.0.0');
 targetEnabled[2] := (BroadcastIp3 <> '') AND (BroadcastIp3 <> '0.0.0.0');
 targetEnabled[3] := (BroadcastIp4 <> '') AND (BroadcastIp4 <> '0.0.0.0');
+
+(* Считаем только активные адреса. Дубликаты уже очищены при применении Modbus IP. *)
+activeTargetCount := WORD#0;
+IF targetEnabled[0] THEN
+    activeTargetCount := activeTargetCount + WORD#1;
+END_IF
+IF targetEnabled[1] THEN
+    activeTargetCount := activeTargetCount + WORD#1;
+END_IF
+IF targetEnabled[2] THEN
+    activeTargetCount := activeTargetCount + WORD#1;
+END_IF
+IF targetEnabled[3] THEN
+    activeTargetCount := activeTargetCount + WORD#1;
+END_IF
 
 remoteAddrInitError1 := NBS.ERROR.NO_ERROR;
 remoteAddrInitError2 := NBS.ERROR.NO_ERROR;
@@ -414,7 +432,15 @@ CASE state OF
         totalPackets := UDINT_TO_WORD(
             (selectedDataBytes + maxPayloadBytesByUdp - UDINT#1) / maxPayloadBytesByUdp
         );
-        PacketCount := totalPackets;
+        totalSendPackets := WORD_TO_UDINT(totalPackets) * WORD_TO_UDINT(activeTargetCount);
+        IF totalSendPackets > UDINT#65535 THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_PARAMETER;
+            DiagErrorSource := 7;
+            state := 100;
+            RETURN;
+        END_IF
+        PacketCount := UDINT_TO_WORD(totalSendPackets);
 
         currentPacket := 0;
         PacketIndex := 0;

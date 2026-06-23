@@ -5,7 +5,7 @@
 TYPE ST_UdpBroadcastState :
 STRUCT
     busy         : BOOL;    (* Выполняется цикл передачи *)
-    packet_count : WORD;    (* Общее количество пакетов в цикле *)
+    packet_count : WORD;    (* Кол-во отправок в цикле с учетом активных IP *)
     send_count   : UDINT;   (* Счетчик успешно отправленных пакетов *)
     error_code   : UINT;    (* Код источника ошибки FB: 0..10 *)
 END_STRUCT

@@ -5,7 +5,7 @@
 *)
 TYPE ST_UdpBroadcastStateModbus :
 STRUCT
-    packet_count                   : WORD;   (* Кол-во пакетов в цикле *)
+    packet_count                   : WORD;   (* Кол-во отправок в цикле с учетом активных IP *)
     send_count                     : WORD;   (* Счетчик отправленных пакетов, младшее WORD *)
     error_code                     : WORD;   (* Код источника ошибки FB: 0..10 *)
 END_STRUCT

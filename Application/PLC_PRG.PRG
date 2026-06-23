@@ -42,14 +42,20 @@ udp_common_modbus.target1_status := F_UdpApplyIPv4FromWords(
 );
 udp_common_modbus.target2_status := F_UdpApplyIPv4FromWords(
     Ip := udp_common_modbus.target2_ip,
+    PreviousIp1 := udp_common.broadcast_ip_1,
     IpAddress := udp_common.broadcast_ip_2
 );
 udp_common_modbus.target3_status := F_UdpApplyIPv4FromWords(
     Ip := udp_common_modbus.target3_ip,
+    PreviousIp1 := udp_common.broadcast_ip_1,
+    PreviousIp2 := udp_common.broadcast_ip_2,
     IpAddress := udp_common.broadcast_ip_3
 );
 udp_common_modbus.target4_status := F_UdpApplyIPv4FromWords(
     Ip := udp_common_modbus.target4_ip,
+    PreviousIp1 := udp_common.broadcast_ip_1,
+    PreviousIp2 := udp_common.broadcast_ip_2,
+    PreviousIp3 := udp_common.broadcast_ip_3,
     IpAddress := udp_common.broadcast_ip_4
 );
 
