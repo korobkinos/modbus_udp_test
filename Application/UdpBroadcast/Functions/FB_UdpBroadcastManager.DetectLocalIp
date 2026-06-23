@@ -1,0 +1,17 @@
+METHOD PRIVATE DetectLocalIp : BOOL
+VAR_IN_OUT
+    SettingsRef : ST_UdpBroadcastSettings;
+END_VAR
+
+DetectLocalIp := FALSE;
+
+IF local_ip_init_done THEN
+    RETURN;
+END_IF
+
+detected_local_ip := GetLocalIPv4();
+IF detected_local_ip <> '' THEN
+    SettingsRef.local_ip := detected_local_ip;
+    local_ip_init_done := TRUE;
+    DetectLocalIp := TRUE;
+END_IF

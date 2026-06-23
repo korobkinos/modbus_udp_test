@@ -1,0 +1,63 @@
+{attribute 'no_assign'}
+FUNCTION_BLOCK FB_UdpBroadcastManager
+VAR_IN_OUT
+    Settings   : ST_UdpBroadcastSettings;
+    ChannelMap : ARRAY[0..9] OF ST_UdpBroadcastChannelModbus;
+    CommonMap  : ST_UdpBroadcastCommonModbus;
+END_VAR
+VAR_OUTPUT
+    Active : BOOL;
+END_VAR
+VAR
+    CHANNEL_FIRST : UINT := 0;
+    CHANNEL_LAST  : UINT := 9;
+    IP_SLOT_FIRST : UINT := 1;
+    IP_SLOT_LAST  : UINT := 4;
+
+    tx : ARRAY[0..9] OF FB_UdpWordBroadcast;
+    runtime_state : ARRAY[0..9] OF ST_UdpBroadcastState;
+
+    payload_ptr : ARRAY[0..9] OF POINTER TO BYTE;
+    payload_size_bytes : ARRAY[0..9] OF UDINT;
+    broadcast_ip : ARRAY[1..4] OF STRING(16);
+    start_send_prev : ARRAY[0..9] OF WORD;
+
+    maps_initialized : BOOL;
+    local_ip_init_done : BOOL;
+    detected_local_ip : STRING(16);
+
+    ch : UINT;
+    ip_slot : UINT;
+    start_send_pulse : BOOL;
+    fb_enable : BOOL;
+    current_payload_ptr : POINTER TO BYTE;
+    current_payload_size_bytes : UDINT;
+END_VAR
+
+IF NOT maps_initialized THEN
+    InitMapsFromSettings(
+        SettingsRef := Settings,
+        ChannelMapRef := ChannelMap,
+        CommonMapRef := CommonMap
+    );
+END_IF
+
+DetectLocalIp(SettingsRef := Settings);
+
+SyncSettingsFromModbus(
+    SettingsRef := Settings,
+    ChannelMapRef := ChannelMap,
+    CommonMapRef := CommonMap
+);
+
+ApplyTargetIp(
+    SettingsRef := Settings,
+    CommonMapRef := CommonMap
+);
+
+RunChannels(
+    SettingsRef := Settings,
+    ChannelMapRef := ChannelMap
+);
+
+Active := TRUE;

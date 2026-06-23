@@ -1,0 +1,51 @@
+METHOD PRIVATE RunChannels : BOOL
+VAR_IN_OUT
+    SettingsRef   : ST_UdpBroadcastSettings;
+    ChannelMapRef : ARRAY[0..9] OF ST_UdpBroadcastChannelModbus;
+END_VAR
+
+FOR ch := CHANNEL_FIRST TO CHANNEL_LAST DO
+    start_send_pulse := (ChannelMapRef[ch].cfg.start_send <> 0) AND (start_send_prev[ch] = 0);
+    start_send_prev[ch] := ChannelMapRef[ch].cfg.start_send;
+
+    fb_enable := SettingsRef.enable_all AND
+        (WORD_TO_BOOL(SettingsRef.channel_cfg[ch].enable) OR start_send_pulse OR runtime_state[ch].busy);
+
+    current_payload_ptr := payload_ptr[ch];
+    current_payload_size_bytes := payload_size_bytes[ch];
+    IF (current_payload_ptr = 0) OR (current_payload_size_bytes = UDINT#0) THEN
+        current_payload_ptr := ADR(ChannelMapRef[ch]);
+        current_payload_size_bytes := SIZEOF(ChannelMapRef[ch]);
+    END_IF
+
+    tx[ch](
+        Enable      := fb_enable,
+        Signature   := SettingsRef.channel_cfg[ch].signature,
+        LocalIp     := SettingsRef.local_ip,
+        BroadcastIp := broadcast_ip,
+        LocalPort   := WORD_TO_UINT(SettingsRef.channel_cfg[ch].local_port),
+        RemotePort  := WORD_TO_UINT(SettingsRef.channel_cfg[ch].remote_port),
+        MaxPacketBytesLimit := WORD_TO_UDINT(SettingsRef.channel_cfg[ch].max_packet_bytes_limit),
+        Period      := UDINT_TO_TIME(WORD_TO_UDINT(SettingsRef.channel_cfg[ch].period_ms)),
+        StartSend   := start_send_pulse,
+        PacketType  := SettingsRef.channel_cfg[ch].packet_type,
+        Version     := SettingsRef.channel_cfg[ch].version,
+        PayloadEndianness := SettingsRef.channel_cfg[ch].payload_endianness,
+        InterPacketDelay := UDINT_TO_TIME(WORD_TO_UDINT(SettingsRef.channel_cfg[ch].inter_packet_delay_ms)),
+        pPayloadData      := current_payload_ptr,
+        PayloadSizeBytes  := current_payload_size_bytes,
+
+        Busy          => runtime_state[ch].busy,
+        PacketCount   => runtime_state[ch].packet_count,
+        SendDoneCount => runtime_state[ch].send_count,
+        LastCycleTimeMs => runtime_state[ch].last_cycle_time_ms,
+        DiagErrorSource => runtime_state[ch].error_code
+    );
+
+    ChannelMapRef[ch].state.packet_count := runtime_state[ch].packet_count;
+    ChannelMapRef[ch].state.send_count := UDINT_TO_WORD(runtime_state[ch].send_count);
+    ChannelMapRef[ch].state.error_code := UINT_TO_WORD(runtime_state[ch].error_code);
+    ChannelMapRef[ch].state.last_cycle_time_ms := runtime_state[ch].last_cycle_time_ms;
+END_FOR
+
+RunChannels := TRUE;

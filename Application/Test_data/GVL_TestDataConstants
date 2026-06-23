@@ -1,0 +1,4 @@
+VAR_GLOBAL CONSTANT
+    main_ai_quantity : WORD := 128;
+    REGULATOR_QUANTITY : WORD := 4;
+END_VAR

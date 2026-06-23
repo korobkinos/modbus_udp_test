@@ -10,12 +10,9 @@
     <TypeSimple name="T_BOOL" size="1" swapsize="0" typeclass="Bool" iecname="BOOL" />
     <TypeSimple name="T_DWORD" size="4" swapsize="4" typeclass="DWord" iecname="DWORD" />
     <TypeUserDef name="T_IoDrvPsModbusTcpSlave" size="0" nativesize="4488" typeclass="Userdef" pouclass="FUNCTION_BLOCK" iecname="IoDrvPsModbusTcpSlave" basetype="T_IoDrvBase" />
-    <TypeSimple name="T_STRING_16_" size="17" swapsize="0" typeclass="String" iecname="STRING(16)" />
     <TypeSimple name="T_STRING_255_" size="256" swapsize="0" typeclass="String" iecname="STRING(255)" />
-    <TypeSimple name="T_UDINT" size="4" swapsize="4" typeclass="UDInt" iecname="UDINT" />
-    <TypeSimple name="T_UINT" size="2" swapsize="2" typeclass="UInt" iecname="UINT" />
     <TypeSimple name="T_WORD" size="2" swapsize="2" typeclass="Word" iecname="WORD" />
-    <TypeArray name="T_ARRAY__1__4__OF_STRING_16_" size="68" nativesize="68" typeclass="Array" iecname="ARRAY [1..4] OF STRING(16)" basetype="T_STRING_16_">
+    <TypeArray name="T_ARRAY__1__4__OF_WORD" size="8" nativesize="8" typeclass="Array" iecname="ARRAY [1..4] OF WORD" basetype="T_WORD">
       <ArrayDim minrange="1" maxrange="4" />
     </TypeArray>
     <TypeUserDef name="T_ST_UdpBroadcastConfigModbus" size="26" nativesize="24" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastConfigModbus">
@@ -31,45 +28,48 @@
       <UserDefElement iecname="payload_endianness" type="T_WORD" byteoffset="22" vartype="VAR" access="ReadWrite" />
       <UserDefElement iecname="inter_packet_delay_ms" type="T_WORD" byteoffset="24" vartype="VAR" access="ReadWrite" />
     </TypeUserDef>
-    <TypeUserDef name="T_ST_UdpBroadcastState" size="12" nativesize="12" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastState">
-      <UserDefElement iecname="busy" type="T_BOOL" byteoffset="0" vartype="VAR" access="ReadWrite" />
-      <UserDefElement iecname="packet_count" type="T_WORD" byteoffset="2" vartype="VAR" access="ReadWrite" />
-      <UserDefElement iecname="send_count" type="T_UDINT" byteoffset="4" vartype="VAR" access="ReadWrite" />
-      <UserDefElement iecname="error_code" type="T_UINT" byteoffset="8" vartype="VAR" access="ReadWrite" />
-      <UserDefElement iecname="last_cycle_time_ms" type="T_WORD" byteoffset="10" vartype="VAR" access="ReadWrite" />
-    </TypeUserDef>
     <TypeUserDef name="T_ST_UdpBroadcastStateModbus" size="8" nativesize="8" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastStateModbus">
       <UserDefElement iecname="packet_count" type="T_WORD" byteoffset="0" vartype="VAR" access="ReadWrite" />
       <UserDefElement iecname="send_count" type="T_WORD" byteoffset="2" vartype="VAR" access="ReadWrite" />
       <UserDefElement iecname="error_code" type="T_WORD" byteoffset="4" vartype="VAR" access="ReadWrite" />
       <UserDefElement iecname="last_cycle_time_ms" type="T_WORD" byteoffset="6" vartype="VAR" access="ReadWrite" />
     </TypeUserDef>
+    <TypeUserDef name="T_ST_UdpIPv4Modbus" size="8" nativesize="8" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpIPv4Modbus">
+      <UserDefElement iecname="octet_0" type="T_WORD" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="octet_1" type="T_WORD" byteoffset="2" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="octet_2" type="T_WORD" byteoffset="4" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="octet_3" type="T_WORD" byteoffset="6" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
     <TypeArray name="T_ARRAY__0__9__OF_ST_UdpBroadcastConfigModbus" size="280" nativesize="240" typeclass="Array" iecname="ARRAY [0..9] OF ST_UdpBroadcastConfigModbus" basetype="T_ST_UdpBroadcastConfigModbus">
       <ArrayDim minrange="0" maxrange="9" />
     </TypeArray>
-    <TypeArray name="T_ARRAY__0__9__OF_ST_UdpBroadcastState" size="120" nativesize="120" typeclass="Array" iecname="ARRAY [0..9] OF ST_UdpBroadcastState" basetype="T_ST_UdpBroadcastState">
-      <ArrayDim minrange="0" maxrange="9" />
+    <TypeArray name="T_ARRAY__1__4__OF_ST_UdpIPv4Modbus" size="32" nativesize="32" typeclass="Array" iecname="ARRAY [1..4] OF ST_UdpIPv4Modbus" basetype="T_ST_UdpIPv4Modbus">
+      <ArrayDim minrange="1" maxrange="4" />
     </TypeArray>
     <TypeUserDef name="T_ST_UdpBroadcastChannelModbus" size="34" nativesize="32" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastChannelModbus">
       <UserDefElement iecname="cfg" type="T_ST_UdpBroadcastConfigModbus" byteoffset="0" vartype="VAR" access="ReadWrite" />
       <UserDefElement iecname="state" type="T_ST_UdpBroadcastStateModbus" byteoffset="26" vartype="VAR" access="ReadWrite" />
     </TypeUserDef>
-    <TypeUserDef name="T_ST_UdpBroadcastCommon" size="325" nativesize="325" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastCommon">
-      <UserDefElement iecname="enable_all" type="T_BOOL" byteoffset="0" vartype="VAR" access="ReadWrite" />
-      <UserDefElement iecname="local_ip" type="T_STRING_255_" byteoffset="1" vartype="VAR" access="ReadWrite" />
-      <UserDefElement iecname="broadcast_ip" type="T_ARRAY__1__4__OF_STRING_16_" byteoffset="257" vartype="VAR" access="ReadWrite" />
-    </TypeUserDef>
     <TypeArray name="T_ARRAY__0__9__OF_ST_UdpBroadcastChannelModbus" size="360" nativesize="320" typeclass="Array" iecname="ARRAY [0..9] OF ST_UdpBroadcastChannelModbus" basetype="T_ST_UdpBroadcastChannelModbus">
       <ArrayDim minrange="0" maxrange="9" />
     </TypeArray>
+    <TypeUserDef name="T_ST_UdpBroadcastCommonModbus" size="40" nativesize="40" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastCommonModbus">
+      <UserDefElement iecname="target_ip" type="T_ARRAY__1__4__OF_ST_UdpIPv4Modbus" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="target_status" type="T_ARRAY__1__4__OF_WORD" byteoffset="32" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ST_UdpBroadcastSettings" size="572" nativesize="529" typeclass="Userdef" pouclass="STRUCTURE" iecname="ST_UdpBroadcastSettings">
+      <UserDefElement iecname="enable_all" type="T_BOOL" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="local_ip" type="T_STRING_255_" byteoffset="1" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="target_ip" type="T_ARRAY__1__4__OF_ST_UdpIPv4Modbus" byteoffset="258" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="channel_cfg" type="T_ARRAY__0__9__OF_ST_UdpBroadcastConfigModbus" byteoffset="292" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
   </TypeList>
   <NodeList>
     <Node name="Application">
       <Node name="GVL_UDP">
-        <Node name="udp_cfg" type="T_ARRAY__0__9__OF_ST_UdpBroadcastConfigModbus" access="ReadWrite" />
         <Node name="udp_channel_modbus" type="T_ARRAY__0__9__OF_ST_UdpBroadcastChannelModbus" access="ReadWrite" directaddress="%MB0" />
-        <Node name="udp_common" type="T_ST_UdpBroadcastCommon" access="ReadWrite" />
-        <Node name="udp_state" type="T_ARRAY__0__9__OF_ST_UdpBroadcastState" access="ReadWrite" />
+        <Node name="udp_common_modbus" type="T_ST_UdpBroadcastCommonModbus" access="ReadWrite" directaddress="%MB160" />
+        <Node name="udp_settings" type="T_ST_UdpBroadcastSettings" access="ReadWrite" />
       </Node>
       <Node name="IoConfig_Globals">
         <Node name="Modbus_TCP_Slave" type="T_IoDrvPsModbusTcpSlave" access="ReadWrite" />

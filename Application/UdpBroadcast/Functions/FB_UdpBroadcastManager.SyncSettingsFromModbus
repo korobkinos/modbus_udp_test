@@ -1,0 +1,17 @@
+METHOD PRIVATE SyncSettingsFromModbus : BOOL
+VAR_IN_OUT
+    SettingsRef   : ST_UdpBroadcastSettings;
+    ChannelMapRef : ARRAY[0..9] OF ST_UdpBroadcastChannelModbus;
+    CommonMapRef  : ST_UdpBroadcastCommonModbus;
+END_VAR
+
+FOR ch := CHANNEL_FIRST TO CHANNEL_LAST DO
+    SettingsRef.channel_cfg[ch] := ChannelMapRef[ch].cfg;
+    SettingsRef.channel_cfg[ch].start_send := WORD#0;
+END_FOR
+
+FOR ip_slot := IP_SLOT_FIRST TO IP_SLOT_LAST DO
+    SettingsRef.target_ip[ip_slot] := CommonMapRef.target_ip[ip_slot];
+END_FOR
+
+SyncSettingsFromModbus := TRUE;

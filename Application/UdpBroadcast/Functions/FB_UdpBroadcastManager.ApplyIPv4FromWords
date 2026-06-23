@@ -1,7 +1,6 @@
-﻿FUNCTION F_UdpApplyIPv4FromWords : WORD
+METHOD PRIVATE ApplyIPv4FromWords : WORD
 VAR_INPUT
     Ip : ST_UdpIPv4Modbus;
-    PreviousIp : ARRAY[1..4] OF STRING(16);
     SlotIndex : UINT;
 END_VAR
 VAR_IN_OUT
@@ -12,11 +11,7 @@ VAR
     i : UINT;
 END_VAR
 
-(* Проверяет 4 октета IP из Modbus и обновляет строку адреса.
-   Статус: 0 = используется, 1 = не используется (0.0.0.0),
-   2 = ошибка IP, 3 = дубликат уже принятого IP.
-   При статусах 1, 2 и 3 строка очищается, и FB пропускает этот адрес. *)
-F_UdpApplyIPv4FromWords := WORD#2;
+ApplyIPv4FromWords := WORD#2;
 
 IF (Ip.octet_0 > WORD#255) OR
    (Ip.octet_1 > WORD#255) OR
@@ -28,7 +23,7 @@ END_IF
 
 IF (Ip.octet_0 = 0) AND (Ip.octet_1 = 0) AND (Ip.octet_2 = 0) AND (Ip.octet_3 = 0) THEN
     IpAddress := '';
-    F_UdpApplyIPv4FromWords := WORD#1;
+    ApplyIPv4FromWords := WORD#1;
     RETURN;
 END_IF
 
@@ -41,13 +36,13 @@ sIp := CONCAT(sIp, BYTE_TO_STRING(WORD_TO_BYTE(Ip.octet_3)));
 
 IF SlotIndex > UINT#1 THEN
     FOR i := UINT#1 TO SlotIndex - UINT#1 DO
-        IF (PreviousIp[i] <> '') AND (sIp = PreviousIp[i]) THEN
+        IF (broadcast_ip[i] <> '') AND (sIp = broadcast_ip[i]) THEN
             IpAddress := '';
-            F_UdpApplyIPv4FromWords := WORD#3;
+            ApplyIPv4FromWords := WORD#3;
             RETURN;
         END_IF
     END_FOR
 END_IF
 
 IpAddress := sIp;
-F_UdpApplyIPv4FromWords := WORD#0;
+ApplyIPv4FromWords := WORD#0;
