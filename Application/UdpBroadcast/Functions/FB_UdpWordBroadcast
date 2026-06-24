@@ -286,7 +286,7 @@ CASE state OF
             RETURN;
         END_IF
 
-        IF udpPeer.xError THEN
+        IF udpPeer.xError AND (NOT udpPeer.xActive) THEN
             Error := TRUE;
             ErrorId := udpPeer.eErrorID;
             DiagErrorSource := 4;
