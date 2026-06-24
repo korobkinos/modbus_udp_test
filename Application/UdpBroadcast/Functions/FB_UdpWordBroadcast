@@ -531,7 +531,8 @@ CASE state OF
             Error   := TRUE;
             ErrorId := sendResult;
             DiagErrorSource := 8;
-            state := 100;
+            targetIndex := targetIndex + UINT#1;
+            state := 30;
         END_IF
 
     40: (* InterPacketDelay *)
