@@ -287,7 +287,7 @@ CASE state OF
             RETURN;
         END_IF
 
-        IF udpPeer.xError THEN
+        IF udpPeer.xError AND (NOT udpPeer.xActive) THEN
             Error := TRUE;
             ErrorId := udpPeer.eErrorID;
             DiagErrorSource := 4;
@@ -536,7 +536,8 @@ CASE state OF
             Error   := TRUE;
             ErrorId := sendResult;
             DiagErrorSource := 8;
-            state := 100;
+            targetIndex := targetIndex + UINT#1;
+            state := 30;
         END_IF
 
     40: (* InterPacketDelay *)
