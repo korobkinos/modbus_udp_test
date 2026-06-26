@@ -6,28 +6,27 @@ VAR
     PidData3       : PidSettings_2;            (* Данные канала 3 *)
 
     UdpManager : FB_UdpBroadcastManager;
-    payloadBound : BOOL;
 END_VAR
 
-payloadBound := UdpManager.SetPayload(
+UdpManager.SetPayload(
     ChannelIndex := 0,
     pData := ADR(AISettingsData),
     SizeBytes := SIZEOF(AISettingsData)
 );
 
-payloadBound := UdpManager.SetPayload(
+UdpManager.SetPayload(
     ChannelIndex := 1,
     pData := ADR(PidData),
     SizeBytes := SIZEOF(PidData)
 );
 
-payloadBound := UdpManager.SetPayload(
+UdpManager.SetPayload(
     ChannelIndex := 2,
     pData := ADR(PidData2),
     SizeBytes := SIZEOF(PidData2)
 );
 
-payloadBound := UdpManager.SetPayload(
+UdpManager.SetPayload(
     ChannelIndex := 3,
     pData := ADR(PidData3),
     SizeBytes := SIZEOF(PidData3)

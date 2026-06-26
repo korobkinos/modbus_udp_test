@@ -193,6 +193,7 @@ cycleTimer(IN := cycleTimerEnable, PT := T#65535MS);
 
 // ------------------------------------------------------------
 IF (cycleStart OR startTrig.Q) AND (state = 0) AND (NOT Busy) THEN
+    (* Новый цикл начинается только из Idle: по периоду или ручному StartSend. *)
     cycleStart := FALSE;
     cycleTimerEnable := TRUE;
     state := 10;
@@ -327,6 +328,7 @@ CASE state OF
 
         requestedPacketBytesForRange := SIZEOF(packetHeader) + selectedDataBytes;
 
+        (* Лимит пакета берем из настроек, но не выше UDP-максимума. *)
         effectiveMaxPacketBytes := MAX_PACKET_BYTES;
         IF (MaxPacketBytesLimit > UDINT#0) AND (MaxPacketBytesLimit < effectiveMaxPacketBytes) THEN
             effectiveMaxPacketBytes := MaxPacketBytesLimit;
@@ -418,6 +420,7 @@ CASE state OF
         wordsInPacketUdint := (bytesInPacket + UDINT#1) / UDINT#2;
         wordsInPacket := UDINT_TO_WORD(wordsInPacketUdint);
 
+        (* Заголовок описывает фрагмент payload внутри текущего цикла. *)
         packetHeader.Signature        := Signature;
         packetHeader.Version          := Version;
         packetHeader.PacketType       := PacketType;
@@ -442,6 +445,7 @@ CASE state OF
             byteInWordIndex := iByte MOD UDINT#2;
             dstPayloadByteIndex := iByte;
 
+            (* Для WORD-oriented получателя можно поменять местами байты внутри каждого WORD. *)
             IF (PayloadEndianness = 1) AND ((byteInWordIndex = 1) OR ((byteInWordIndex = 0) AND ((iByte + UDINT#1) < bytesInPacket))) THEN
                 dstPayloadByteIndex := ((iByte / UDINT#2) * UDINT#2) + (UDINT#1 - byteInWordIndex);
             END_IF
@@ -489,6 +493,7 @@ CASE state OF
             RETURN;
         END_IF
 
+        (* Один и тот же пакет отправляется по всем активным адресам назначения. *)
         WHILE targetIndex <= UINT#4 DO
             IF targetEnabled[targetIndex] THEN
                 EXIT;

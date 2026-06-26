@@ -1,5 +1,11 @@
 {attribute 'no_assign'}
 FUNCTION_BLOCK FB_UdpBroadcastManager
+(*
+  Управляет несколькими UDP-каналами:
+  - один раз инициализирует Modbus-карты из настроек;
+  - синхронизирует изменения из Modbus обратно в Settings;
+  - подставляет payload для каждого канала и запускает FB_UdpWordBroadcast.
+*)
 VAR_IN_OUT
     Settings   : ST_UdpBroadcastSettings;
     ChannelMap : ARRAY[0..9] OF ST_UdpBroadcastChannelModbus;
@@ -14,14 +20,19 @@ VAR
     IP_SLOT_FIRST : UINT := 1;
     IP_SLOT_LAST  : UINT := 4;
 
+    (* Рабочие экземпляры отправителя и состояние каналов. *)
     tx : ARRAY[0..9] OF FB_UdpWordBroadcast;
     runtime_state : ARRAY[0..9] OF ST_UdpBroadcastState;
 
+    (* Внешний payload задается через SetPayload. Если не задан, отправляется Modbus-карта канала. *)
     payload_ptr : ARRAY[0..9] OF POINTER TO BYTE;
     payload_size_bytes : ARRAY[0..9] OF UDINT;
+
+    (* Подготовленные IP-адреса назначения и предыдущие значения start_send для фронта. *)
     broadcast_ip : ARRAY[1..4] OF STRING(16);
     start_send_prev : ARRAY[0..9] OF WORD;
 
+    (* Флаги однократной инициализации. *)
     maps_initialized : BOOL;
     local_ip_init_done : BOOL;
     detected_local_ip : STRING(16);

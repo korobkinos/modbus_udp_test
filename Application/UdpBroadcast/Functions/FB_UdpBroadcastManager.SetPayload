@@ -1,4 +1,8 @@
 METHOD SetPayload : BOOL
+(*
+  Привязывает произвольную структуру/буфер к каналу отправки.
+  Возвращает TRUE, если индекс канала корректный, указатель не нулевой и размер больше 0.
+*)
 VAR_INPUT
     ChannelIndex : UINT;
     pData : POINTER TO BYTE;
