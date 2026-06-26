@@ -5,6 +5,10 @@
 TYPE ST_UdpBroadcastSettings :
 STRUCT
     enable_all : BOOL := TRUE;
+
+    (* Fallback IP контроллера. FB_UdpBroadcastManager при запуске пытается определить
+       реальный локальный IPv4 автоматически; это значение остается для ручной настройки
+       или случая, когда на PLC несколько интерфейсов и выбран не тот адрес. *)
     local_ip   : STRING(255) := '192.168.4.220';
 
     target_ip : ARRAY[1..4] OF ST_UdpIPv4Modbus := [
