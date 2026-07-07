@@ -1,4 +1,8 @@
 METHOD PRIVATE ApplyTargetIp : BOOL
+(*
+  Переносит IP-адреса получателей из Modbus-карты в строки broadcast_ip.
+  Для каждого слота записывает статус проверки в target_status.
+*)
 VAR_IN_OUT
     CommonMapRef : ST_UdpBroadcastCommonModbus;
 END_VAR

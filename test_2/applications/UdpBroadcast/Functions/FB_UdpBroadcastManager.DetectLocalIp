@@ -1,4 +1,8 @@
 METHOD PRIVATE DetectLocalIp : BOOL
+(*
+  Один раз определяет локальный IPv4 и записывает его в рабочие настройки.
+  Возвращает TRUE только когда адрес найден и сохранен.
+*)
 VAR_IN_OUT
     SettingsRef : ST_UdpBroadcastSettings;
 END_VAR

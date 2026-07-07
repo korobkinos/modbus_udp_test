@@ -1,4 +1,8 @@
 METHOD PRIVATE GetLocalIPv4 : STRING(16)
+(*
+  Ищет рабочий IPv4-адрес контроллера.
+  Сначала перебирает сетевые адаптеры, затем пробует получить адрес через имя хоста.
+*)
 VAR
     stAdapter : SysSocket.SOCK_ADAPTER_INFORMATION;
     hAdapter  : UDINT;

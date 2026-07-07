@@ -7,12 +7,7 @@
 TYPE ST_UdpBroadcastCommonModbus :
 STRUCT
     (* IP-адреса получателей UDP; каждый адрес задается четырьмя WORD-октетами. *)
-    target_ip : ARRAY[1..4] OF ST_UdpIPv4Modbus := [
-        (octet_0 := 0, octet_1 := 0, octet_2 := 0, octet_3 := 0),
-        (octet_0 := 0, octet_1 := 0, octet_2 := 0, octet_3 := 0),
-        (octet_0 := 0, octet_1 := 0, octet_2 := 0, octet_3 := 0),
-        (octet_0 := 0, octet_1 := 0, octet_2 := 0, octet_3 := 0)
-    ];
+    target_ip : ARRAY[1..4] OF ST_UdpIPv4Modbus;
 
     (* Статус IP-слота: 0 = используется, 1 = не используется, 2 = ошибка IP, 3 = дубликат IP. *)
     target_status : ARRAY[1..4] OF WORD := [1, 1, 1, 1];

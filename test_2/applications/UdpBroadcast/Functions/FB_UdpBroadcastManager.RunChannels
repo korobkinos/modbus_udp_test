@@ -1,4 +1,9 @@
 METHOD PRIVATE RunChannels : BOOL
+(*
+  Выполняет один проход по всем UDP-каналам:
+  формирует одноцикловый start_send, поддерживает активный цикл до завершения
+  и копирует диагностику FB_UdpWordBroadcast в runtime_state.
+*)
 VAR_IN_OUT
     SettingsRef   : ST_UdpBroadcastSettings;
 END_VAR

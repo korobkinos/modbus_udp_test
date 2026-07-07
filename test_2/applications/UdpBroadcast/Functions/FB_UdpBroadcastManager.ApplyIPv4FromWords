@@ -1,4 +1,9 @@
 METHOD PRIVATE ApplyIPv4FromWords : WORD
+(*
+  Проверяет IPv4 из четырех WORD-октетов и собирает строку адреса.
+  Возвращает статус слота: 0 = используется, 1 = не используется,
+  2 = ошибка IP, 3 = дубликат IP.
+*)
 VAR_INPUT
     Ip : ST_UdpIPv4Modbus;
     SlotIndex : UINT;

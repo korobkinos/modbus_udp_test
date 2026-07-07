@@ -1,5 +1,9 @@
 METHOD PRIVATE ApplyDefaultChannelSettings
-(* Жесткие настройки UDP-каналов. start_send здесь не задается. *)
+(*
+  Каждый вызов менеджера заново задает постоянные параметры каналов 0..9:
+  включение, сигнатуру пакета, порты, лимит размера, период отправки
+  и порядок байт payload.
+*)
 VAR_IN_OUT
     SettingsRef : ST_UdpBroadcastSettings;
 END_VAR
