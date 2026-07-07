@@ -4,9 +4,9 @@
 *)
 TYPE ST_UdpIPv4Modbus :
 STRUCT
-    octet_0 : WORD := 0;
-    octet_1 : WORD := 0;
-    octet_2 : WORD := 0;
-    octet_3 : WORD := 0;
+    octet_0 : WORD := 0; (* Первый октет IPv4-адреса. *)
+    octet_1 : WORD := 0; (* Второй октет IPv4-адреса. *)
+    octet_2 : WORD := 0; (* Третий октет IPv4-адреса. *)
+    octet_3 : WORD := 0; (* Четвертый октет IPv4-адреса. *)
 END_STRUCT
 END_TYPE

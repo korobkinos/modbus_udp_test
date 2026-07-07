@@ -1,16 +1,19 @@
 {attribute 'pack_mode' := '1'}
+(*
+  Настройки одного UDP-канала, доступные через Modbus.
+*)
 TYPE ST_UdpBroadcastConfigModbus :
 STRUCT
-    enable                 : WORD;
-    signature              : DWORD;
-    packet_type            : WORD;
-    version                : WORD;
-    local_port             : WORD;
-    remote_port            : WORD;
-    max_packet_bytes_limit : WORD;
-    period_ms              : WORD;
-    start_send             : WORD;
-    payload_endianness     : WORD;
-    inter_packet_delay_ms  : WORD;
+    enable                 : WORD;  (* Разрешение канала: 0 = выключен, не 0 = включен. *)
+    signature              : DWORD; (* Сигнатура протокола в заголовке UDP-пакета. *)
+    packet_type            : WORD;  (* Тип пакета в заголовке UDP-пакета. *)
+    version                : WORD;  (* Версия протокола в заголовке UDP-пакета. *)
+    local_port             : WORD;  (* Локальный UDP-порт отправителя. *)
+    remote_port            : WORD;  (* UDP-порт получателя. *)
+    max_packet_bytes_limit : WORD;  (* Максимальный размер UDP-пакета, байт; 0 = лимит FB по умолчанию. *)
+    period_ms              : WORD;  (* Период автоматической отправки полного цикла, мс. *)
+    start_send             : WORD;  (* Ручной запуск одного полного цикла; сбрасывается после чтения. *)
+    payload_endianness     : WORD;  (* Порядок байт payload: 0 = как в WORD, 1 = перестановка байт. *)
+    inter_packet_delay_ms  : WORD;  (* Пауза между UDP-пакетами внутри одного цикла, мс. *)
 END_STRUCT
 END_TYPE
