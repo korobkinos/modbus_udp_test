@@ -3,7 +3,6 @@ VAR
 	UdpManager			:	FB_UdpBroadcastManager;
 	udp_settings		:	ST_UdpBroadcastSettings;
 	udp_common_modbus	AT %MW160 : ST_UdpBroadcastCommonModbus;
-    udp_channel_modbus	(*AT %MW1000*) : ARRAY[0..9] OF ST_UdpBroadcastChannelModbus;//(* Modbus-карта каналов. Стартовый адрес сохранен: %MW0. *)
 	
 	
 	DI_DO_STATE_INIT:	DI_DO_UNIT;
@@ -71,6 +70,5 @@ UdpManager.SetPayload(
 
 UdpManager(
     Settings := udp_settings,
-    ChannelMap := udp_channel_modbus,
     CommonMap := udp_common_modbus
 );

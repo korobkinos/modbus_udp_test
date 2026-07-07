@@ -18,7 +18,7 @@ STRUCT
         (octet_0 := 0, octet_1 := 0, octet_2 := 0, octet_3 := 0)
     ];
 
-    (* start_send - команда Modbus; FB-обертка хранит ее RETAIN-значение равным 0. *)
+    (* start_send - команда ручного запуска; FB-обертка сбрасывает ее в 0 после чтения. *)
     channel_cfg : ARRAY[0..9] OF ST_UdpBroadcastConfigModbus := [
         (
             enable                 := 1,

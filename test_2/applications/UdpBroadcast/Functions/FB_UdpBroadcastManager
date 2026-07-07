@@ -2,14 +2,13 @@
 FUNCTION_BLOCK FB_UdpBroadcastManager
 (*
   Управляет несколькими UDP-каналами:
-  - один раз инициализирует Modbus-карты из настроек;
-  - синхронизирует изменения из Modbus обратно в Settings;
+  - берет настройки каналов из Settings;
+  - синхронизирует IP-адреса получателей из Modbus в Settings;
   - подставляет payload для каждого канала и запускает FB_UdpWordBroadcast.
 *)
 VAR_IN_OUT
-    Settings   : ST_UdpBroadcastSettings;
-    ChannelMap : ARRAY[0..9] OF ST_UdpBroadcastChannelModbus;
-    CommonMap  : ST_UdpBroadcastCommonModbus;
+    Settings  : ST_UdpBroadcastSettings;
+    CommonMap : ST_UdpBroadcastCommonModbus;
 END_VAR
 VAR_OUTPUT
     Active : BOOL;
@@ -24,16 +23,13 @@ VAR
     tx : ARRAY[0..9] OF FB_UdpWordBroadcast;
     runtime_state : ARRAY[0..9] OF ST_UdpBroadcastState;
 
-    (* Внешний payload задается через SetPayload. Если не задан, отправляется Modbus-карта канала. *)
+    (* Внешний payload задается через SetPayload. *)
     payload_ptr : ARRAY[0..9] OF POINTER TO BYTE;
     payload_size_bytes : ARRAY[0..9] OF UDINT;
 
-    (* Подготовленные IP-адреса назначения и предыдущие значения start_send для фронта. *)
+    (* Подготовленные IP-адреса назначения. *)
     broadcast_ip : ARRAY[1..4] OF STRING(16);
-    start_send_prev : ARRAY[0..9] OF WORD;
 
-    (* Флаги однократной инициализации. *)
-    maps_initialized : BOOL;
     local_ip_init_done : BOOL;
     detected_local_ip : STRING(16);
 
@@ -47,19 +43,10 @@ END_VAR
 
 // === IMPLEMENTATION ===
 
-IF NOT maps_initialized THEN
-    InitMapsFromSettings(
-        SettingsRef := Settings,
-        ChannelMapRef := ChannelMap,
-        CommonMapRef := CommonMap
-    );
-END_IF
-
 DetectLocalIp(SettingsRef := Settings);
 
 SyncSettingsFromModbus(
     SettingsRef := Settings,
-    ChannelMapRef := ChannelMap,
     CommonMapRef := CommonMap
 );
 
@@ -69,8 +56,7 @@ ApplyTargetIp(
 );
 
 RunChannels(
-    SettingsRef := Settings,
-    ChannelMapRef := ChannelMap
+    SettingsRef := Settings
 );
 
 Active := TRUE;

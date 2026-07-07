@@ -1,27 +1,21 @@
 ﻿METHOD PRIVATE RunChannels : BOOL
 VAR_IN_OUT
     SettingsRef   : ST_UdpBroadcastSettings;
-    ChannelMapRef : ARRAY[0..9] OF ST_UdpBroadcastChannelModbus;
 END_VAR
 
 // === IMPLEMENTATION ===
 
 FOR ch := CHANNEL_FIRST TO CHANNEL_LAST DO
-    (* start_send из Modbus трактуется как импульс по фронту, чтобы команда не повторялась каждый цикл PLC. *)
-    start_send_pulse := (ChannelMapRef[ch].cfg.start_send <> 0) AND (start_send_prev[ch] = 0);
-    start_send_prev[ch] := ChannelMapRef[ch].cfg.start_send;
+    (* start_send трактуется как команда на один цикл и сбрасывается после чтения. *)
+    start_send_pulse := SettingsRef.channel_cfg[ch].start_send <> 0;
+    SettingsRef.channel_cfg[ch].start_send := WORD#0;
 
     (* Канал работает при общем разрешении и включенном канале, ручном старте или незавершенной отправке. *)
     fb_enable := SettingsRef.enable_all AND
         (WORD_TO_BOOL(SettingsRef.channel_cfg[ch].enable) OR start_send_pulse OR runtime_state[ch].busy);
 
-    (* Если прикладной payload не задан через SetPayload, отправляем собственную Modbus-карту канала. *)
     current_payload_ptr := payload_ptr[ch];
     current_payload_size_bytes := payload_size_bytes[ch];
-    IF (current_payload_ptr = 0) OR (current_payload_size_bytes = UDINT#0) THEN
-        current_payload_ptr := ADR(ChannelMapRef[ch]);
-        current_payload_size_bytes := SIZEOF(ChannelMapRef[ch]);
-    END_IF
 
     tx[ch](
         Enable      := fb_enable,
@@ -46,12 +40,6 @@ FOR ch := CHANNEL_FIRST TO CHANNEL_LAST DO
         LastCycleTimeMs => runtime_state[ch].last_cycle_time_ms,
         DiagErrorSource => runtime_state[ch].error_code
     );
-
-    (* Краткую диагностику канала возвращаем в Modbus-карту. *)
-    ChannelMapRef[ch].state.packet_count := runtime_state[ch].packet_count;
-    ChannelMapRef[ch].state.send_count := UDINT_TO_WORD(runtime_state[ch].send_count);
-    ChannelMapRef[ch].state.error_code := UINT_TO_WORD(runtime_state[ch].error_code);
-    ChannelMapRef[ch].state.last_cycle_time_ms := runtime_state[ch].last_cycle_time_ms;
 END_FOR
 
 RunChannels := TRUE;
