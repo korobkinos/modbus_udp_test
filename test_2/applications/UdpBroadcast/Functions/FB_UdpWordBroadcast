@@ -24,7 +24,6 @@ VAR_INPUT
     PayloadSizeBytes  : UDINT := 0;           (* Размер структуры/буфера в байтах *)
 END_VAR
 VAR_OUTPUT
-    Active        : BOOL;        (* FB активен *)
     Busy          : BOOL;        (* Идет передача цикла *)
     Error         : BOOL;        (* Ошибка *)
     ErrorId       : NBS.ERROR;   (* Код ошибки *)
@@ -48,8 +47,6 @@ VAR_OUTPUT
     DiagPeerActive           : BOOL;       (* Состояние peer *)
     DiagPeerError            : BOOL;       (* Ошибка peer *)
     DiagPeerErrorId          : NBS.ERROR;  (* Код ошибки peer *)
-    DiagSendExecute          : BOOL;       (* Вызов peer.Send в текущем цикле *)
-    DiagSendBusy             : BOOL;       (* Не используется (FALSE) *)
     DiagSendError            : BOOL;       (* Ошибка отправки peer.Send *)
     DiagSendErrorId          : NBS.ERROR;  (* Код ошибки peer.Send *)
     DiagSendCount            : UDINT;      (* Кол-во реально отправленных байт *)
@@ -136,7 +133,6 @@ startTrig(CLK := StartSend);
 
 // ------------------------------------------------------------
 IF NOT Enable THEN
-    Active := FALSE;
     Busy := FALSE;
     Error := FALSE;
     ErrorId := NBS.ERROR.NO_ERROR;
@@ -162,8 +158,6 @@ IF NOT Enable THEN
     DiagPeerActive := FALSE;
     DiagPeerError := FALSE;
     DiagPeerErrorId := NBS.ERROR.NO_ERROR;
-    DiagSendExecute := FALSE;
-    DiagSendBusy := FALSE;
     DiagSendError := FALSE;
     DiagSendErrorId := NBS.ERROR.NO_ERROR;
     DiagSendCount := 0;
@@ -174,8 +168,6 @@ IF NOT Enable THEN
     DiagRemoteAddrInitError := NBS.ERROR.NO_ERROR;
     RETURN;
 END_IF
-
-Active := TRUE;
 
 // ------------------------------------------------------------
 timer(IN := TRUE, PT := Period);
@@ -519,8 +511,6 @@ CASE state OF
             udiCount     => sendCount
         );
 
-        DiagSendExecute := TRUE;
-        DiagSendBusy := FALSE;
         DiagSendCount := sendCount;
         DiagSendLength := sendLen;
 
@@ -577,7 +567,6 @@ CASE state OF
     100: (* Error *)
         cycleTimerEnable := FALSE;
         Busy := FALSE;
-        DiagSendExecute := FALSE;
         IF cycleStart OR startTrig.Q THEN
             cycleStart := TRUE;
             state := 0;

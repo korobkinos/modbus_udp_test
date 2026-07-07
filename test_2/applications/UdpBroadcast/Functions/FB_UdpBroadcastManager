@@ -10,9 +10,6 @@ VAR_IN_OUT
     Settings  : ST_UdpBroadcastSettings;     (* Рабочие настройки UDP-каналов. *)
     CommonMap : ST_UdpBroadcastCommonModbus; (* Modbus-карта IP-адресов и статусов. *)
 END_VAR
-VAR_OUTPUT
-    Active : BOOL; (* FB_UdpBroadcastManager выполняется. *)
-END_VAR
 VAR
     CHANNEL_FIRST : UINT := 0; (* Первый UDP-канал. *)
     CHANNEL_LAST  : UINT := 9; (* Последний UDP-канал. *)
@@ -58,6 +55,3 @@ ApplyTargetIp(
 RunChannels(
     SettingsRef := Settings
 );
-
-(* Блок выполнил текущий цикл. *)
-Active := TRUE;
