@@ -1,0 +1,11 @@
+﻿TYPE ObjectAnalogData :	//Аналога объекта, всего предусмотрено 4 аналога 
+STRUCT
+	Number		:	ARRAY [1..OBJECT_ANALOG_QUANTITY] OF AiChData;
+	(*
+	AI_1
+	AI_2
+	AI_3
+	AI_4
+	*)
+END_STRUCT
+END_TYPE

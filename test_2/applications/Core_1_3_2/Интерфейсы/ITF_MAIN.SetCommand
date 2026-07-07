@@ -1,0 +1,6 @@
+﻿METHOD SetCommand : bool
+VAR_INPUT
+	Command				:	CommandStructure;
+END_VAR
+
+// === IMPLEMENTATION ===

@@ -1,0 +1,5 @@
+﻿TYPE DoBindingSettings :	//
+STRUCT
+	Number				:		ARRAY[1..DO_QUANTITY] OF DigitalBindingData;
+END_STRUCT
+END_TYPE

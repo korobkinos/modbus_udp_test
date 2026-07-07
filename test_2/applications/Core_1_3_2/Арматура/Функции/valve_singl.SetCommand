@@ -1,0 +1,46 @@
+﻿//{warning 'добавить реализацию метода'}
+METHOD SetCommand : BOOL
+VAR_INPUT
+	Command	:	WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF Command = Open AND NOT state_local.Flags.Blocked THEN
+	state_local.Flags.ControlOn:= TRUE;
+END_IF
+IF Command = Closed THEN
+	state_local.Flags.ControlOn:= FALSE;
+END_IF
+
+open_local:= Command = Open;
+closed_local:= Command = Closed;
+
+state_local.Flags.MoveUp:= (Command = Up OR Command = Open) AND NOT state_local.Flags.Blocked;
+
+state_local.Flags.MoveDown:= Command = Down OR Command = Closed;
+
+state_local.Flags.Stop:= Command = Stop;
+
+IF Command = Auto THEN
+	state_local.Flags.AutoMode:= TRUE;
+END_IF
+IF Command = Manual THEN
+	state_local.Flags.AutoMode:= FALSE;
+END_IF
+IF Command = Lockal THEN
+	state_local.Flags.LockalMode:= TRUE;
+END_IF
+IF Command = Distance THEN
+	state_local.Flags.LockalMode:= FALSE;
+END_IF
+
+IF Command = ImitationOn THEN
+	state_local.Flags.Imitation:= TRUE;
+END_IF
+
+IF Command = ImitationOff THEN
+	state_local.Flags.Imitation:= FALSE;
+END_IF
+
+THIS^.block_set:= Command = Block;

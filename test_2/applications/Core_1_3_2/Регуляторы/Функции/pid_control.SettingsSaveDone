@@ -1,0 +1,14 @@
+﻿METHOD SettingsSaveDone : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	//counter		:	WORD;
+	zero_data		:	PidData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+//FOR counter:= 1 TO 15 DO
+MODBUS.REGULATOR_SETTINGS_DATA.Settings:= zero_data;
+//END_FOR
+MODBUS.REGULATOR_SETTINGS_DATA.Command:= 2;

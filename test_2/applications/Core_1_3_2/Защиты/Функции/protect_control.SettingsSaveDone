@@ -1,0 +1,13 @@
+﻿METHOD SettingsSaveDone : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	//counter		:	WORD;
+	zero_data		:	ProtectData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+MODBUS.PROTECT_MANAGER_DATA.Settings.Delay:= 0;
+MODBUS.PROTECT_MANAGER_DATA.Settings:= zero_data;
+MODBUS.PROTECT_MANAGER_DATA.Command:= 2;

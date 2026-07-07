@@ -1,0 +1,6 @@
+﻿TYPE PidState:// EXTENDS PidStateUnion :
+STRUCT
+	State			:	PidStateUnion;
+	AnalogData		:	ObjectAnalogData;
+END_STRUCT
+END_TYPE

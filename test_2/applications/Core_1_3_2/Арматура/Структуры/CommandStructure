@@ -1,0 +1,6 @@
+﻿TYPE CommandStructure :
+STRUCT
+	Command				:	WORD;
+	SelectedNumber		:	WORD;
+END_STRUCT
+END_TYPE

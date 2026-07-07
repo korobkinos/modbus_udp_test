@@ -1,0 +1,62 @@
+﻿METHOD INTERNAL SaveBinding : BOOL
+VAR_INPUT
+	digital_manager_data	:	POINTER TO DigitalManagerData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF _digital_binding = 0 OR digital_manager_data = 0 THEN
+	RETURN;
+END_IF
+IF digital_manager_data^.Command <> 1 THEN
+	RETURN;
+END_IF
+IF digital_manager_data^.SelectedNumber = 0 OR digital_manager_data^.SelectedNumber > GetObjectCount() THEN
+	RETURN;
+END_IF
+//Запись возможна, только если нет дублирующей записи или если перезаписываем дублирующую. А смысл?
+IF MAIN.main_itf[digital_manager_data^.BindingData.ItfNumber] <> NULL THEN
+	IF digital_manager_data^.BindingData.BitNumber < 32 AND
+	digital_manager_data^.BindingData.BitNumber >= 0 AND
+	digital_manager_data^.BindingData.ObjectNumber > 0 AND
+	digital_manager_data^.BindingData.ObjectNumber <= MAIN.main_itf[digital_manager_data^.BindingData.ItfNumber].GetObjectCount() THEN
+		_digital_binding^.Number[digital_manager_data^.SelectedNumber]:= digital_manager_data^.BindingData;
+		SaveBinding:= TRUE;
+	END_IF
+END_IF
+//записать 0.0.0 если уже что-то было записано!
+IF 	digital_manager_data^.BindingData.BitNumber = 0 AND
+	digital_manager_data^.BindingData.ObjectNumber = 0 AND
+	digital_manager_data^.BindingData.ItfNumber = 0 THEN
+	_digital_binding^.Number[digital_manager_data^.SelectedNumber]:= digital_manager_data^.BindingData;
+	SaveBinding:= TRUE;
+END_IF
+
+(*
+IF _digital_binding <> 0 AND digital_manager_data <> 0 THEN
+//Запись возможна, только если нет дублирующей записи или если перезаписываем дублирующую/ Тоесть, если идет запись из файла, и появилась одна повторная. НЕТ! из файла DuplicateNumber не будет
+IF (digital_manager_data^.SelectedNumber = digital_manager_data^.DuplicateNumber OR digital_manager_data^.DuplicateNumber = 0) AND
+(digital_manager_data^.SelectedNumber > 0 AND digital_manager_data^.SelectedNumber <= GetObjectCount()) AND MAIN.main_itf[digital_manager_data^.BindingData.ItfNumber] <> NULL THEN
+	IF digital_manager_data^.Command = 1 AND
+	digital_manager_data^.BindingData.ItfNumber <= ITF_QUANTITY AND
+	digital_manager_data^.BindingData.BitNumber < 32 AND
+	digital_manager_data^.BindingData.BitNumber >= 0 AND
+	digital_manager_data^.BindingData.ObjectNumber > 0 AND
+	digital_manager_data^.BindingData.ObjectNumber <= MAIN.main_itf[digital_manager_data^.BindingData.ItfNumber].GetObjectCount() THEN
+		_digital_binding^.Number[digital_manager_data^.SelectedNumber]:= digital_manager_data^.BindingData;
+		SaveBinding:= TRUE;
+	END_IF
+END_IF
+
+
+//записать 0.0.0 если уже что-то было записано!
+IF digital_manager_data^.SelectedNumber > 0 AND digital_manager_data^.SelectedNumber <= GetObjectCount() AND
+	digital_manager_data^.BindingData.BitNumber = 0 AND
+	digital_manager_data^.BindingData.ObjectNumber = 0 AND
+	digital_manager_data^.BindingData.ItfNumber = 0 AND
+	digital_manager_data^.Command = 1 THEN
+		_digital_binding^.Number[digital_manager_data^.SelectedNumber]:= digital_manager_data^.BindingData;
+		SaveBinding:= TRUE;
+END_IF
+END_IF
+*)

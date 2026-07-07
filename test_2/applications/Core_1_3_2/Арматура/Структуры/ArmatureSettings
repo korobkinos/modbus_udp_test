@@ -1,0 +1,5 @@
+﻿TYPE ArmatureSettings :
+STRUCT
+	Number			:	ARRAY [1..ARMATURE_QUANTITY] OF ArmatureData;
+END_STRUCT
+END_TYPE

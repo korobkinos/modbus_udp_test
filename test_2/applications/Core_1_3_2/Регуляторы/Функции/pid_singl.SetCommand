@@ -1,0 +1,14 @@
+﻿METHOD SetCommand : BOOL
+VAR_INPUT
+	Command	: WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF Command = SetAuto THEN
+	state_local.Flags.On:= TRUE;
+END_IF
+
+IF Command = SetManual THEN
+	state_local.Flags.On:= FALSE;
+END_IF

@@ -1,0 +1,6 @@
+﻿TYPE PidStateUnion :
+UNION
+    DwValue		:	DWORD;						// Целое значение для передачи
+    Flags		:	PidStateBit;		// Структура с именованными битами
+END_UNION
+END_TYPE

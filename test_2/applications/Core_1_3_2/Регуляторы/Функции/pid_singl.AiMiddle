@@ -1,0 +1,24 @@
+﻿METHOD AiMiddle : REAL
+VAR_INPUT
+	Sensor1	:	AiChData;		//Аналог 1
+	Sensor2	:	AiChData;		//Аналог 2
+END_VAR
+
+VAR_OUTPUT
+	Error		:	BOOL;	//Ошибка 2х датчиков
+END_VAR
+
+VAR
+	exception_1		:	REAL;
+	exception_2		:	REAL;
+END_VAR		
+
+// === IMPLEMENTATION ===
+
+Error:= Sensor1.Status.Flags.Error AND Sensor2.Status.Flags.Error;
+exception_1:= BOOL_TO_REAL(NOT Sensor1.Status.Flags.Error);
+exception_2:= BOOL_TO_REAL(NOT Sensor2.Status.Flags.Error);
+
+IF NOT Error THEN
+	AiMiddle:= (Sensor1.Value * exception_1 + Sensor2.Value * exception_2) / (exception_1 + exception_2);
+END_IF

@@ -1,0 +1,47 @@
+﻿METHOD SaveEvents : BOOL
+VAR_INPUT
+	EventData	: POINTER TO EventManagerData;
+END_VAR
+VAR
+	_event_settings		:	POINTER TO EventSettings;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+_event_settings:= ADR(SETTINGS.DATA.EVENT_SETTINGS);
+IF EventData = 0 OR _event_settings = 0 THEN
+	RETURN;
+END_IF
+IF EventData^.SelectedNumber = 0 OR EventData^.SelectedNumber > EVENT_QUANTITY THEN
+	RETURN;
+END_IF
+
+//Записываем только валидную настройку
+IF MAIN.main_itf[EventData^.Settings.Value[itf_number]] <> NULL AND MAIN.main_itf[EventData^.Settings.Value[itf_director]] <> 0 THEN
+	IF EventData^.Settings.Value[object_number] > 0 AND EventData^.Settings.Value[object_number] <=  MAIN.main_itf[EventData^.Settings.Value[itf_number]].GetObjectCount() AND
+	EventData^.Settings.Value[object_director] > 0 AND EventData^.Settings.Value[object_director] <=  MAIN.main_itf[EventData^.Settings.Value[itf_director]].GetObjectCount() THEN
+		IF	EventData^.Settings.Value[object_director_bit] >= 0 AND EventData^.Settings.Value[object_director_bit] <= 31 THEN
+			IF EventData^.Command = 1 THEN
+				_event_settings^.Number[EventData^.SelectedNumber]:= EventData^.Settings;
+				SaveEvents:= TRUE;
+			END_IF
+		END_IF
+	END_IF
+END_IF
+
+//записать 0.0.0... если уже что-то было записано!
+IF EventData^.Command = 1 AND
+	EventData^.Settings.Value[1] = 0 AND
+	EventData^.Settings.Value[2] = 0 AND
+	EventData^.Settings.Value[3] = 0 AND
+	EventData^.Settings.Value[4] = 0 AND
+	EventData^.Settings.Value[5] = 0 AND
+	EventData^.Settings.Value[6] = 0 AND
+	EventData^.Settings.Value[7] = 0 AND
+	EventData^.Settings.Value[8] = 0 AND
+	EventData^.Settings.Value[9] = 0 AND
+	EventData^.Settings.Value[10] = 0 AND
+	EventData^.Settings.Value[11] = 0 THEN
+		_event_settings^.Number[EventData^.SelectedNumber]:= EventData^.Settings;
+		SaveEvents:= TRUE;
+END_IF

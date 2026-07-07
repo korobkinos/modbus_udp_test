@@ -1,0 +1,5 @@
+﻿TYPE AoBindingSettings :
+STRUCT
+	Number				:		ARRAY[1..AO_QUANTITY] OF DigitalBindingData;
+END_STRUCT
+END_TYPE

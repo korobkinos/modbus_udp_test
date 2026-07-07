@@ -1,0 +1,9 @@
+﻿METHOD SetState : BOOL		//
+VAR_INPUT
+	ObjectNumber			:	WORD;	//Номер объекта
+	BitNumber				:	WORD;	//Номер бита
+	Value					:	BOOL;	//Значение бита
+	
+END_VAR
+
+// === IMPLEMENTATION ===

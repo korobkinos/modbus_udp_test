@@ -1,0 +1,19 @@
+﻿FUNCTION_BLOCK ABSTRACT base_control IMPLEMENTS ITF_MAIN
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	_objects_quantity		:	WORD;	//Количество объектов интерфейса
+	_analog_quantity		:	WORD;	//Могут быть объекты, в которых нет аналогов. По этому будет 0. Обязательно так надо!
+	_object_itf				:	ARRAY [1..DI_QUANTITY] OF ITF_OBJECT;
+
+	_digital_binding		:	POINTER TO DiBindingSettings;
+	
+	file_header				:	STRING(255);
+	digital_binding			:	DigitalBindingData;		//Временное хранилище привязок одного выбранного объекта
+	binding_tof				:	TOF;
+	binding_ton				:	TON;
+END_VAR
+
+// === IMPLEMENTATION ===

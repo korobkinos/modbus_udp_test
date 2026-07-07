@@ -1,0 +1,30 @@
+﻿METHOD PRIVATE ModulToDi : ARRAY[1..DI_QUANTITY] OF BOOL;//Функция распределяет локальные дискреты из физических модулей + инверсия входов + обнуление входов при аварии модуля
+VAR_INPUT
+	di_phizic			:	POINTER TO ARRAY [1..DI_MODUL_QUANTITY] OF DWORD;
+	di_modul_error		:	POINTER TO ARRAY [1..DI_MODUL_QUANTITY] OF BOOL;
+	InverseSettings		:	POINTER TO ARRAY [1..DI_QUANTITY] OF BOOL;
+END_VAR
+VAR_OUTPUT
+	
+END_VAR
+VAR
+	modul_counter		:	WORD;
+	bit_counter			:	BYTE;
+	in_out_counter		:	WORD;
+	
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF di_phizic <> 0 AND InverseSettings <> 0 THEN
+	FOR modul_counter:= 1 TO DI_MODUL_QUANTITY DO	//Если DI = 16 а модулей 2????
+		FOR bit_counter:= 0 TO 31 DO
+			in_out_counter:= in_out_counter + 1;
+			IF in_out_counter <= DI_QUANTITY THEN
+				ModulToDi[in_out_counter]:= (GetBit(di_phizic^[modul_counter], bit_counter) XOR InverseSettings^[in_out_counter] (*Инверсия входов*)) AND NOT di_modul_error^[modul_counter]; //HwError DI модулей
+			ELSE
+				EXIT;
+			END_IF
+		END_FOR
+	END_FOR
+END_IF

@@ -1,0 +1,9 @@
+﻿METHOD SetAnalog : BOOL
+VAR_INPUT
+	ObjectNumber			:	WORD;	//Номер объекта
+	AnalogNumber			:	WORD;	//Номер аналога
+	Value					:	AiChData;	//Значение аналога
+	
+END_VAR
+
+// === IMPLEMENTATION ===

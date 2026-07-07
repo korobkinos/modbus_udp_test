@@ -1,0 +1,11 @@
+﻿FUNCTION status_byte: BYTE;//ARRAY[0..31] OF WORD;
+VAR_INPUT
+	dw_0	:	BOOL;
+	dw_1	:	BOOL;
+	
+END_VAR
+
+// === IMPLEMENTATION ===
+
+status_byte.0:= dw_0;
+status_byte.1:= dw_1;

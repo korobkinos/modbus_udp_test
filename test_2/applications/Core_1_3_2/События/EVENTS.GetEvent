@@ -1,0 +1,11 @@
+﻿METHOD PRIVATE GetEvent : EventData	//Метод возвращает настройки одного события
+VAR_INPUT
+	EventNumber		:	WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF EventNumber = 0 OR EventNumber > EVENT_QUANTITY THEN
+	RETURN;
+END_IF
+GetEvent:= SETTINGS.DATA.EVENT_SETTINGS.Number[EventNumber];

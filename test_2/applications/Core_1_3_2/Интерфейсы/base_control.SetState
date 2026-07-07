@@ -1,0 +1,17 @@
+﻿METHOD (*ABSTRACT*) SetState : BOOL
+VAR_INPUT
+	(*Номер объекта*)
+	ObjectNumber	: WORD;
+	(*Номер бита*)
+	BitNumber	: WORD;
+	(*Значение бита*)
+	Value	: BOOL;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF ObjectNumber > 0 AND ObjectNumber <= GetObjectCount() AND BitNumber >= 0 AND BitNumber <= 31 THEN
+	IF _object_itf[ObjectNumber] <> NULL THEN
+		_object_itf[ObjectNumber].State:= PutBit(_object_itf[ObjectNumber].State, WORD_TO_BYTE(BitNumber), value);
+	END_IF
+END_IF

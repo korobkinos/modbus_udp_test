@@ -1,0 +1,10 @@
+﻿METHOD PRIVATE GetScale : ScaleData
+VAR_INPUT
+	selected_number	:	WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF selected_number > 0 AND selected_number <= GetObjectCount() THEN
+	GetScale:= SETTINGS.DATA.AI_SETTINGS.Number[selected_number];
+END_IF

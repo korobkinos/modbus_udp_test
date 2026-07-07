@@ -1,0 +1,65 @@
+﻿FUNCTION_BLOCK valve_singl EXTENDS base_singl//IMPLEMENTS ITF_OBJECT
+VAR_INPUT
+	settings		:	POINTER TO ArmatureData;
+END_VAR
+
+VAR
+	analog_data		:	ObjectAnalogData;
+	regulator_data	:	PidTrendData;//PidLinkData;
+	state_local		:	ArmatureStateUnion;
+	block_set		:	BOOL;
+	block_tof		:	tof;
+	value_generator	:	value_generator;
+	open_local		:	BOOL;
+	closed_local	:	BOOL;
+	
+END_VAR
+VAR CONSTANT
+	NoCommand		:	WORD:=0;
+	Open			:	WORD:=1;			//Открыть
+	Closed			:	WORD:=2;			//Закрыть
+	Stop			:	WORD:=3;			//Остановить
+	Up				:	WORD:=4;			//Больше
+	Down			:	WORD:=5;			//Меньше
+	Auto			:	WORD:=6;			//В автомат
+	Manual			:	WORD:=7;			//В ручное
+	Distance		:	WORD:=8;			//В дистанционное
+	Lockal			:	WORD:=9;			//В местное
+	Block			:	WORD:=10;			//Заблокировать
+	SetSpecial		:	WORD:=11;			//Установить на спец позицию
+	ImitationOn		:	WORD:=12;			//Включить имитацию
+	ImitationOff	:	WORD:=13;			//Отключить имитацию
+	
+END_VAR
+
+// === IMPLEMENTATION ===
+
+_State:= ADR(state_local);
+_AnalogData:= ADR(analog_data);
+_RegulatorData:= ADR(regulator_data);
+block_tof(IN:= block_set, PT:= T#100MS);
+state_local.Flags.Blocked:= block_tof.Q;
+
+//Обработка имитации
+IF settings <> 0 AND state_local.Flags.Imitation THEN
+	value_generator(	up:= state_local.Flags.MoveUp,// AND NOT (block AND NOT block_mode),
+						down:= state_local.Flags.MoveDown,// AND NOT (block AND block_mode),
+						open:= open_local,// AND NOT (block AND NOT block_mode),
+						closed:= closed_local,// AND NOT (block AND block_mode),
+						set_time:= settings^.WaitTime / 2);
+	state_local.Flags.PhysOpen:= value_generator.open_state;
+	state_local.Flags.PhysClosed:= value_generator.closed_state;
+	analog_data.Number[1].Value:= value_generator.percent_value;
+END_IF					
+
+SetCommand(0);
+open_local:= FALSE;
+closed_local:= FALSE;
+
+analog_data.Number[2].Value:= regulator_data.Data[2];// .PV;	//Присвоение в аналог № 2 PV привязанного регулятора
+analog_data.Number[5].Value:= regulator_data.Data[1];// .SP;	//Присвоение в аналог № 5 SP привязанного регулятора
+
+IF state_local.Flags.AutoMode THEN
+	state_local.Flags.MoveUp:= REAL_TO_BIT(regulator_data.Data[4]);// .Up;
+	state_local.Flags.MoveDown:= REAL_TO_BIT(regulator_data.Data[5]);// .Down;
+END_IF

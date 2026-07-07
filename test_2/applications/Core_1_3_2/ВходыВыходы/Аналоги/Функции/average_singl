@@ -1,0 +1,63 @@
+﻿FUNCTION_BLOCK average_singl//
+VAR_INPUT
+	in					:	REAL;
+	settings			:	ScaleData;		//Настройки канала
+END_VAR
+VAR_OUTPUT
+	out					:	REAL;
+END_VAR
+VAR
+	average_buffer_size	:	WORD;		//Размер буффера сглаживания
+	average_old			:	REAL;		
+	buffer_counter		:	WORD;		//Счетчик Буффера сглаживания
+	average_buffer		:	ARRAY[0..100] OF REAL;//Буффер сглаживания
+	adder_counter		:	WORD;
+	average_adder		:	REAL;		//Сумматор сглаживания
+	
+	rtc_result			:	ULINT;
+	old_clock			:	ULINT;
+	time_remind			:	ULINT;
+	
+END_VAR
+
+// === IMPLEMENTATION ===
+
+//Часы реального времени
+SysTimeRtcHighResGet(pTimestamp:= rtc_result);
+
+//Определяем время цикла вызова
+time_remind:= rtc_result - old_clock;
+old_clock:= rtc_result;
+
+//Вычисляем Размер буффера сглаживания
+average_buffer_size:= REAL_TO_WORD(settings.value[average] * 100 / ULINT_TO_REAL(time_remind));
+
+//Ограничение Размера буффера сглаживания
+  IF average_buffer_size > 100 THEN
+    average_buffer_size:= 100;
+  END_IF
+  
+//Заполняем весь буффер текущим значением при начальном включении сглаживания 
+IF settings.value[average] <> average_old AND average_buffer_size > 0 THEN
+  FOR adder_counter:= 0 TO average_buffer_size - 1 DO
+    average_buffer[adder_counter]:= in;
+  END_FOR
+END_IF
+
+IF settings.value[average] <> 0 AND average_buffer_size > 0 THEN
+	//Наполняем буффер сглаживания измерениями
+	IF buffer_counter >= average_buffer_size THEN
+		buffer_counter:= 0;
+	END_IF
+	average_buffer[buffer_counter]:= in;
+	buffer_counter:= buffer_counter + 1;
+	//Вычисляем среднее значение	
+	average_adder:= 0;
+	FOR adder_counter:= 0 TO average_buffer_size - 1 DO
+		average_adder:= average_adder + average_buffer[adder_counter];
+	END_FOR
+	out:= average_adder / average_buffer_size;
+ELSE
+	out:= in;
+END_IF
+average_old:= settings.value[average];

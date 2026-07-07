@@ -1,0 +1,28 @@
+﻿METHOD Proportion : REAL
+VAR_INPUT
+	X_sensor:REAL;
+	X_min:REAL;
+	X_max:REAL;
+	Y_min:REAL;
+	Y_max:REAL;
+END_VAR
+VAR
+	X_scale:REAL;//Предел шкалы по газу
+	Y_scale:REAL;//Предел шкалы по воздуху
+	persent_X:REAL;//Процент датчика газа по шкале
+	adder_Y:REAL;//Значение приращения воздуха к air_min, пропорциональное проценту приращения датчика газа к gas_min
+END_VAR
+
+// === IMPLEMENTATION ===
+
+X_scale:= X_max - X_min;
+Y_scale:= Y_max - Y_min;
+IF X_scale <> 0 THEN
+	persent_X:= ((X_sensor - X_min) * 100) / X_scale;
+ELSE
+	persent_X:= 0;
+END_IF
+IF persent_X < 0 THEN persent_X:= 0; END_IF
+IF persent_X > 100 THEN persent_X:= 100; END_IF
+adder_Y:= persent_X * Y_scale / 100;
+(*out*)Proportion:= Y_min +  adder_Y;

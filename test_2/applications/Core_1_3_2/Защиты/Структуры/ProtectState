@@ -1,0 +1,5 @@
+﻿TYPE ProtectState :
+STRUCT
+	Number		:	ARRAY [1..PROTECT_QUANTITY] OF DWORD;// ArmatureStateUnion;
+END_STRUCT
+END_TYPE

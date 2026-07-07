@@ -1,0 +1,29 @@
+﻿FUNCTION bus_diag	:	BOOL
+
+VAR
+	pointer_crate	:	POINTER TO PsIoDrvRegulBus_OS.DeviceNode;
+	pointer_module	:	POINTER TO PsIoDrvRegulBus_OS.DeviceNode;
+	i_module		:	PsIoDrvRegulBus_OS.IRegulModule;
+    mask			:	DWORD;		//маска - отсекаем состояние отдельного модуля в ModuleErrorsMap 
+	i				:	UINT;					//порядковый номер модуля в общем списке
+	modul_counter	:	WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+pointer_crate := ADR(SHUN_1_5);
+modul_counter:= 1;
+WHILE pointer_crate <> 0 DO    //пробегаем по всем крейтамi:=0;
+	pointer_module:= pointer_crate^.GetFirstChild();
+	i:= 0;
+	WHILE pointer_module <> 0 DO    //пробегаем по всем модулям крейта
+		mask := SHL(WORD#1, i);	
+		IF  __QUERYINTERFACE(pointer_module^, i_module) THEN
+			MODBUS.MODUL_ERROR[modul_counter]:= i_module.HwError;
+		END_IF
+		pointer_module:= pointer_module^.GetNext();
+		i:= i + 1;
+		modul_counter:= modul_counter + 1;
+	END_WHILE
+	pointer_crate := pointer_crate^.GetNext(); //следующий крейт
+END_WHILE

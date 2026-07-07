@@ -1,0 +1,6 @@
+﻿TYPE AnalogStateUnion :
+UNION
+    DwValue		:	DWORD;				// Целое значение для передачи
+    Flags		:	AnalogStateBit;		// Структура с именованными битами
+END_UNION
+END_TYPE

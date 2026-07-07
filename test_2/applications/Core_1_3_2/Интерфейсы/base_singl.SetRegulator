@@ -1,0 +1,11 @@
+﻿METHOD SetRegulator : BOOL
+VAR_INPUT
+	Value	: PidTrendData;//PidLinkData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF _RegulatorData <> 0 THEN
+	_RegulatorData^:= Value;
+	SetRegulator:= TRUE;
+END_IF

@@ -1,0 +1,48 @@
+﻿METHOD PRIVATE SaveEventFile : BOOL
+VAR_INPUT
+    FilePath			:	STRING;	(* Путь к файлу, например 'di_binding.txt' , '/mnt/user/codesys/usb0/di_binding.txt'*)
+	Header				:	STRING(255);	//2 строки заголовка (служебная информация)
+END_VAR
+VAR_IN_OUT
+   
+END_VAR
+VAR
+	settings_data		:	EventData;
+	hFile				:	POINTER TO SysFile.RTS_IEC_HANDLE;//RTS_IEC_HANDLE;
+	sBuffer				:	STRING(255);
+	file_error			:	UDINT;
+	EventCounter		:	WORD;
+	settings_counter	:	WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+// 1. Открываем файл для записи (создаст новый или перезапишет старый)
+hFile := SysFile.SysFileOpen(FilePath, SysFile.AM_WRITE_PLUS, file_error);
+IF hFile = 0 OR hFile = 16#FFFFFFFF THEN
+    RETURN;
+END_IF
+
+// 2. Пишем заголовок
+SysFile.SysFileWrite (hFile, ADR(Header), INT_TO_DWORD(LEN(Header)), file_error);
+
+// 3. Пишем данные из массива
+FOR EventCounter:= 1 TO EVENT_QUANTITY DO
+	// Формируем строку: значение1 + TAB + значение2 + TAB + значение3
+	sBuffer := '';
+	sBuffer := CONCAT(WORD_TO_STRING(EventCounter), '$09');
+	FOR settings_counter:= 1 TO 11 DO
+		sBuffer := CONCAT(sBuffer, WORD_TO_STRING(settings_data.Value[settings_counter]));
+		sBuffer := CONCAT(sBuffer, '$09');
+	END_FOR
+	sBuffer := CONCAT(sBuffer, '$0A');
+	// Пишем строку в файл
+	SysFile.SysFileWrite (hFile, ADR(sBuffer), INT_TO_DWORD(LEN(sBuffer)), file_error);
+END_FOR
+
+// 4. Закрываем файл
+SysFile.SysFileClose(hFile);
+
+// Успешное завершение
+SaveEventFile := TRUE;
+RETURN;

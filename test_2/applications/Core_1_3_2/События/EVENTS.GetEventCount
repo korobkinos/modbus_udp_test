@@ -1,0 +1,14 @@
+﻿METHOD PRIVATE GetEventCount : WORD	//Возвращаем количество занятых событий
+VAR_INPUT
+END_VAR
+VAR
+	counter				:	WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+FOR counter:= 1 TO EVENT_QUANTITY DO
+	IF SETTINGS.DATA.EVENT_SETTINGS.Number[counter].Value[event_enable] > 0 THEN
+		GetEventCount:= GetEventCount + 1;
+	END_IF
+END_FOR

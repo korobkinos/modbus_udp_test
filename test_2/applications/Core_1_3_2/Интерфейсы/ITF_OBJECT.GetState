@@ -1,0 +1,5 @@
+﻿METHOD GetState : DWORD
+VAR_INPUT
+END_VAR
+
+// === IMPLEMENTATION ===

@@ -1,0 +1,7 @@
+﻿TYPE DigitalBindingData :	//"адрес" привяззаного бита к DI/DO
+STRUCT
+	ItfNumber		: WORD;	(*Номер интерфейса*)
+	ObjectNumber	: WORD;	(*Номер объекта в группе(интерфейсе)*)
+	BitNumber		: WORD;	(*Номер бита или аналога для AI*)
+END_STRUCT
+END_TYPE

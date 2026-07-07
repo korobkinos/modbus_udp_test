@@ -1,0 +1,13 @@
+﻿{attribute 'pack_mode' := '1'}
+(*
+  Состояние одного UDP-канала в формате Holding Registers (Modbus).
+  Размер структуры: 4 регистра (WORD).
+*)
+TYPE ST_UdpBroadcastStateModbus :
+STRUCT
+    packet_count                   : WORD;   (* Кол-во отправок в цикле с учетом активных IP *)
+    send_count                     : WORD;   (* Счетчик отправленных пакетов, младшее WORD *)
+    error_code                     : WORD;   (* Код источника ошибки FB: 0..10 *)
+    last_cycle_time_ms             : WORD;   (* Время предыдущего успешного цикла отправки, мс *)
+END_STRUCT
+END_TYPE

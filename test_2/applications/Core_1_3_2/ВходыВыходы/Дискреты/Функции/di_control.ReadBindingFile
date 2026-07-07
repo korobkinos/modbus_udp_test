@@ -1,0 +1,107 @@
+﻿METHOD INTERNAL ReadBindingFile 	: WORD
+VAR_INPUT
+	FilePath				:	STRING; (* Путь к файлу, например 'di_binding.txt' , '/mnt/user/codesys/usb0/di_binding.txt'*)
+END_VAR
+
+VAR
+	digital_manager_data	:	DigitalManagerData;
+	hFile 					:	POINTER TO SysFile.RTS_IEC_HANDLE;//RTS_IEC_HANDLE;
+	Col						:	STRING(255);
+	file_open_error			:	UDINT;
+	ByteData				:	BYTE;
+	ObjectCounter			:	WORD;
+	case_counter			:	WORD;
+	ByteRead				:	DWORD;
+	FileStartTime			:	ULINT;
+	FileStopTime			:	ULINT;
+	
+END_VAR
+VAR CONSTANT
+	ReadCompleted			:	WORD:= 6;	//Чтение строки завершено успешно
+	FileError				:	WORD:= 7;	//Ошибка файла
+	ReadTimeOut				:	WORD:= 8;	//Прервано по таймауту
+	
+END_VAR
+
+// === IMPLEMENTATION ===
+
+//Открываем файл для чтения
+hFile := SysFile.SysFileOpen(FilePath, SysFile.AM_READ, file_open_error);
+IF hFile = 0 OR hFile = 16#FFFFFFFF THEN
+    // Не удалось открыть файл
+	ReadBindingFile:= FileError;
+    RETURN;
+END_IF
+//Получим текущее время ПЛК
+SysTimeRtcHighResGet(FileStartTime);
+
+FOR ObjectCounter:= 1 TO GetObjectCount() + 2 DO	//Первые 2 строки файла игнорируем. ГЛавное, чтоб в этих строках не было TAB!!!
+	case_counter:= 0;
+	// Читаем байты до конца строки или конца файла
+	WHILE TRUE DO
+		ByteRead:= SysFile.SysFileRead(hFile, ADR(ByteData), 1, file_open_error);
+		// Проверка конца файла
+		IF file_open_error <> 0 THEN
+			ReadBindingFile:= FileError;
+			EXIT;  // Выходим при ошибке чтения
+		END_IF;
+		// Если не табуляция (9) и не конец строки - добавляем к текущей строке
+		IF ByteData <> 9 AND ByteData <> 10 THEN
+			Col:= CONCAT(Col, WORD_AS_STRING(ByteData, 0));
+		END_IF;
+		//Удаляем табуляцию в первых 2х строках
+		IF ByteData = 9 AND ObjectCounter <= 2 THEN
+			ByteData:= 0;
+		END_IF
+		//Если 3я и последующие строки, то формируем digital_manager_data
+		IF (ByteData = 9 OR ByteData = 10) AND ObjectCounter > 2 THEN
+			case_counter:= case_counter + 1;
+			CASE case_counter OF
+				1: digital_manager_data.SelectedNumber:= STRING_TO_WORD(Col);
+				2: digital_manager_data.BindingData.ItfNumber:= STRING_TO_WORD(Col);
+				3: digital_manager_data.BindingData.ObjectNumber:= STRING_TO_WORD(Col);
+				4: digital_manager_data.BindingData.BitNumber:= STRING_TO_WORD(Col);
+			END_CASE
+		END_IF
+		//Обнуляем Col при получении TAB
+		IF ByteData = 9 OR ByteData = 10 THEN
+			Col:='';
+		END_IF
+		//Записываем в RETAIN	
+		IF (ByteData = 10 AND ObjectCounter > 2) OR ByteRead = 0 THEN
+			digital_manager_data.Command:= 1;
+			SaveBinding(ADR(digital_manager_data));
+		END_IF
+		SysTimeRtcHighResGet(FileStopTime);
+		IF FileStopTime - FileStartTime >= 100 THEN
+			ReadBindingFile:= ReadTimeOut;
+		END_IF
+		// Если встретили конец строки (10) или ноль прочитанных байт 
+		IF ByteData = 10 OR ByteRead = 0 THEN
+			digital_manager_data.Command:= 0;
+			digital_manager_data.SelectedNumber:= 0;
+			digital_manager_data.BindingData.ItfNumber:= 0;
+			digital_manager_data.BindingData.ObjectNumber:= 0;
+			digital_manager_data.BindingData.BitNumber:= 0;
+			EXIT;  // Выходим из внутреннего цикла, переходим к следующей строке
+		END_IF;
+		//Если таймаут
+		IF ReadBindingFile = ReadTimeOut THEN
+			EXIT;
+		END_IF	
+	END_WHILE;
+	//Выход из внешнего цикла
+	IF ReadBindingFile = ReadTimeOut OR ReadBindingFile = FileError OR ByteRead = 0 THEN
+		EXIT;
+	END_IF
+END_FOR;
+
+//Закрываем файл
+SysFile.SysFileClose(hFile);
+
+// Успешное завершение
+IF ReadBindingFile = 0 THEN
+	ReadBindingFile:= ReadCompleted;
+END_IF
+
+RETURN;

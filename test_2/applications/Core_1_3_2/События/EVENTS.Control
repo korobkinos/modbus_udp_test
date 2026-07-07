@@ -1,0 +1,39 @@
+﻿METHOD PRIVATE Control  : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	event_counter			:	WORD;
+	event_data				:	EventData;	//Временное хранилище настроек текущего директора
+	event_data_2			:	EventData;	//Временное хранилище настроек AND директора
+	active_1				:	BOOL;
+	active_2				:	BOOL;
+	bit_active				:	BOOL;
+	block_active			:	BOOL;
+	event_command			:	CommandStructure;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+//Обработка всех событий
+FOR event_counter:= 1 TO EVENT_QUANTITY DO
+	event_data:= GetEvent(event_counter);
+	active_1:= EventTest(event_counter);
+	IF event_data.Value[and_event] > 0 THEN
+		event_data_2:= GetEvent(event_data.Value[and_event]);
+		active_2:= (EventTest(event_data.Value[and_event]) AND event_data_2.Value[and_event] = event_counter) AND (event_data_2.Value[command] = event_data.Value[command]) AND
+		(event_data_2.Value[itf_number] = event_data.Value[itf_number]) AND (event_data_2.Value[object_number] = event_data.Value[object_number]);
+	ELSE
+		active_2:= TRUE;
+	END_IF
+	bit_active:= active_1 AND active_2;
+	IF event_data.Value[command] = 10 (*10 - блокировка для всех объектов!*) THEN
+		block_active:= TRUE;
+	END_IF
+	ton_array[event_counter](IN:= bit_active, PT:= WORD_TO_TIME(event_data.Value[ton_time] * 1000));
+	trig_array[event_counter](CLK:= ton_array[event_counter].Q);
+	IF trig_array[event_counter].Q OR (ton_array[event_counter].Q AND block_active) THEN 
+		event_command.Command:= event_data.Value[command];
+		event_command.SelectedNumber:= event_data.Value[object_number];
+		MAIN.main_itf[event_data.Value[itf_number]].SetCommand(event_command);
+	END_IF
+END_FOR

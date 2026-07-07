@@ -1,0 +1,20 @@
+﻿METHOD PRIVATE InitMapsFromSettings : BOOL
+VAR_IN_OUT
+    SettingsRef   : ST_UdpBroadcastSettings;
+    ChannelMapRef : ARRAY[0..9] OF ST_UdpBroadcastChannelModbus;
+    CommonMapRef  : ST_UdpBroadcastCommonModbus;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+FOR ch := CHANNEL_FIRST TO CHANNEL_LAST DO
+    ChannelMapRef[ch].cfg := SettingsRef.channel_cfg[ch];
+    ChannelMapRef[ch].cfg.start_send := WORD#0;
+END_FOR
+
+FOR ip_slot := IP_SLOT_FIRST TO IP_SLOT_LAST DO
+    CommonMapRef.target_ip[ip_slot] := SettingsRef.target_ip[ip_slot];
+END_FOR
+
+maps_initialized := TRUE;
+InitMapsFromSettings := TRUE;

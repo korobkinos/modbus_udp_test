@@ -1,0 +1,6 @@
+﻿TYPE AinChData :
+STRUCT
+	Value	:	REAL;
+	Status	:	BYTE;
+END_STRUCT
+END_TYPE

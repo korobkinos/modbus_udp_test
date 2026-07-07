@@ -1,0 +1,6 @@
+﻿TYPE ProtectCommandStructure EXTENDS CommandStructure :
+STRUCT
+	//Command		:	WORD;
+	State		:	ProtectStateUnion;
+END_STRUCT
+END_TYPE

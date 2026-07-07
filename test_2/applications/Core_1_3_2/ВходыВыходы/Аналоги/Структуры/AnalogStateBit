@@ -1,0 +1,22 @@
+﻿TYPE AnalogStateBit :
+STRUCT
+    // Доступ через имена битов
+    Phys0			: BIT;		// Физический 0
+    Phys1			: BIT;		// Физический 1
+    Phys2			: BIT;		// Физический 2
+	Phys3			: BIT;		// Физический 3
+    Phys4			: BIT;		// Физический 4
+	Phys5			: BIT;		// Физический 5
+	Phys6			: BIT;		// Физический 6
+	Phys7			: BIT;		// Физический 7
+	MinWarning		: BIT;		// Минимум предупреждение
+    MaxWarning		: BIT;		// Максимум предупреждение
+	MinAlarm		: BIT;		// Минимум авария
+    MaxAlarm		: BIT;		// Максимум авария
+    Error			: BIT;		// Авария обобщенная
+    //
+	//
+    // Резервные биты
+
+END_STRUCT
+END_TYPE

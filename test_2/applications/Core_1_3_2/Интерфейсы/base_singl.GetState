@@ -1,0 +1,7 @@
+﻿METHOD GetState : DWORD
+
+// === IMPLEMENTATION ===
+
+IF _State <> 0 THEN
+	GetState:= _State^.DwValue;
+END_IF

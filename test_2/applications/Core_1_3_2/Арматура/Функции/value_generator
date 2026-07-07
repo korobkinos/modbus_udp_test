@@ -1,0 +1,64 @@
+﻿FUNCTION_BLOCK value_generator//Генератор значения от 0 до 100 % с заданной задержкой
+VAR_INPUT
+	up				: BOOL;	//Больше
+	down			: BOOL;	//Меньше
+	open			: BOOL;	//Открыть
+	closed			: BOOL;	//Закрыть
+	set_time		: REAL;	//Время хода в секундах
+	
+END_VAR
+VAR_OUTPUT
+	percent_value	: REAL;
+	open_state		: BOOL;//Состояние открыт/включен итд
+	closed_state		: BOOL;	//Состояние закрвт/выключен итд
+	
+END_VAR
+VAR
+	tik_time			: REAL;		//Время одного цикла
+	open_RS, closed_RS	: RS;		//Триггер команды
+	RTC_RESULT			: ULINT;
+	old_clock			: ULINT;
+	time_remind			: ULINT;
+	adder				: REAL;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF set_time = 0 THEN
+	set_time:= 1;
+END_IF
+
+SysTimeRtcHighResGet(pTimestamp:= RTC_RESULT);(*Часы реального времени*)
+time_remind:= RTC_RESULT - old_clock;
+old_clock:= RTC_RESULT;
+
+open_RS(	SET:= open,
+			RESET1:= closed OR percent_value = 100);
+closed_RS(	SET:= closed,
+			RESET1:= open OR percent_value = 0);
+
+//Вычисляем время прибавления за один цикл
+tik_time:= 1000 *  set_time / ULINT_TO_REAL(time_remind);
+adder:= 100 / tik_time;
+
+//Приращение значения по up
+IF up OR open_RS.Q1 THEN
+	percent_value:= percent_value + adder;
+END_IF
+//Декремент значения по down
+IF down OR closed_RS.Q1 THEN
+	percent_value:= percent_value - adder;
+END_IF
+
+//Ограничение снизу
+IF percent_value < 0 THEN
+	percent_value:= 0;
+END_IF
+//Ограничение сверху
+IF percent_value > 100 THEN
+	percent_value:= 100;
+END_IF
+//Состояние закрыт
+closed_state:= percent_value = 0;
+//Состояние открыт
+open_state:= percent_value = 100;

@@ -1,0 +1,9 @@
+﻿//{warning 'добавить реализацию метода'}
+METHOD SetCommand : BOOL
+VAR_INPUT
+	command	: CommandStructure;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+RETURN;//Нет команд для DI

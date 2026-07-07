@@ -1,0 +1,14 @@
+﻿METHOD SettingsSaveDone : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	//counter		:	WORD;
+	zero_data		:	ScaleData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+//FOR counter:= 1 TO 10 DO
+MODBUS.AI_SETTINGS_DATA.Settings:= zero_data;//.Value[counter]:= 0;
+//END_FOR
+MODBUS.AI_SETTINGS_DATA.Command:= 2;

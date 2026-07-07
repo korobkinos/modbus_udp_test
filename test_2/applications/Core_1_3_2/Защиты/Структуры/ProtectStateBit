@@ -1,0 +1,16 @@
+﻿TYPE ProtectStateBit :
+STRUCT
+    // Доступ через имена битов
+    OnControl		: BIT;		// Защита на контроле
+    NotOn			: BIT;		// Защита выведена 0- введена (по-умолчанию)
+	Warning			: BIT;		// WARNING
+    Alarm			: BIT;		// ALARM	
+    Sensor1			: BIT;		// Датчик 1 защиты 
+	Sensor2			: BIT;		// Датчик 2 защиты 
+	Sensor3			: BIT;		// Датчик 3 защиты 
+	SensorUnit		: BIT;		// Датчик Итоговый 
+	
+   // Резервные биты
+
+END_STRUCT
+END_TYPE

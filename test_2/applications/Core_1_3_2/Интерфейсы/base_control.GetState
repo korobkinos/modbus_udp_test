@@ -1,0 +1,15 @@
+﻿METHOD (*ABSTRACT*) GetState : DWORD
+VAR_INPUT
+	(*Номер объекта в группе*)
+	ObjectNumber	: WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF ObjectNumber > 0 AND ObjectNumber <= GetObjectCount() THEN
+	//get_state:= _object_pointer^[ObjectNumber].State;
+	IF _object_itf[ObjectNumber] <> NULL THEN
+		GetState:= _object_itf[ObjectNumber].GetState();//get_state.DwValue;
+	END_IF
+	
+END_IF

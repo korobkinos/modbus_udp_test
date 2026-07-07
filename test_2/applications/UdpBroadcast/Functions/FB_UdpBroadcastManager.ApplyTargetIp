@@ -1,0 +1,17 @@
+﻿METHOD PRIVATE ApplyTargetIp : BOOL
+VAR_IN_OUT
+    SettingsRef  : ST_UdpBroadcastSettings;
+    CommonMapRef : ST_UdpBroadcastCommonModbus;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+FOR ip_slot := IP_SLOT_FIRST TO IP_SLOT_LAST DO
+    CommonMapRef.target_status[ip_slot] := ApplyIPv4FromWords(
+        Ip := SettingsRef.target_ip[ip_slot],
+        SlotIndex := ip_slot,
+        IpAddress := broadcast_ip[ip_slot]
+    );
+END_FOR
+
+ApplyTargetIp := TRUE;

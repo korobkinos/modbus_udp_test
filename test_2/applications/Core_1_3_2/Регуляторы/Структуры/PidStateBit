@@ -1,0 +1,10 @@
+﻿TYPE PidStateBit :
+STRUCT
+	On				: BIT;		// 0 - Регулятор включен
+	Up				: BIT;		// 1 - Больше на ИМ
+    Down			: BIT;		// 2 - Меньше на ИМ
+    UpBlock			: BIT;		// 3 - Блокировка больше
+	DownBlock		: BIT;		// 4 - Блокировка меньше
+	AnalogError		: BIT;		// 5 - Авария подключенного аналогового датчика(датчиков)
+END_STRUCT
+END_TYPE

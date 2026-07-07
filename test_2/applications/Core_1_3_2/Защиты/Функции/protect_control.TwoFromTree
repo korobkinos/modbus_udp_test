@@ -1,0 +1,23 @@
+﻿METHOD TwoFromTree : BOOL
+VAR_INPUT
+	IN_1	:	BOOL;
+	IN_2	:	BOOL;
+	IN_3	:	BOOL;
+END_VAR
+VAR
+	buffer	:	BYTE;
+	byte_1	:	BYTE;
+	byte_2	:	BYTE;
+	byte_3	:	BYTE;
+	
+END_VAR
+
+// === IMPLEMENTATION ===
+
+byte_1.0:= IN_1;
+byte_2.0:= IN_2;
+byte_3.0:= IN_3;
+
+buffer:= byte_1 + byte_2 + byte_3;
+
+TwoFromTree:= buffer >= 2;

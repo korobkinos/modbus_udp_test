@@ -1,0 +1,44 @@
+﻿FUNCTION proportion : REAL
+VAR_INPUT
+	in			:	REAL;
+	xmin		:	REAL;
+	xmax		:	REAL;
+	ymin		:	REAL;
+	ymax		:	REAL;
+END_VAR
+VAR_OUTPUT
+
+END_VAR
+VAR
+	sensor_range	:	REAL;
+	out_range		:	REAL;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+// Определение диапазонов входного и выходного значений
+sensor_range := xmax - xmin;
+out_range := ymax - ymin;
+
+IF sensor_range <> 0 THEN
+    proportion := ((in - xmin) / sensor_range) * out_range + ymin;
+END_IF
+
+// Ограничение пределов min/max
+IF ymin < ymax THEN
+    // Если диапазон положительный
+    IF proportion < ymin THEN
+        proportion := ymin;
+    END_IF;
+    IF proportion > ymax THEN
+        proportion := ymax;
+    END_IF;
+ELSE
+    // Если диапазон отрицательный
+    IF proportion > ymin THEN
+        proportion := ymin;
+    END_IF;
+    IF proportion < ymax THEN
+        proportion := ymax;
+    END_IF;
+END_IF

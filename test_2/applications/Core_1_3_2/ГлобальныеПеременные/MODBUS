@@ -1,0 +1,45 @@
+﻿{attribute 'qualified_only'}
+VAR_GLOBAL
+	STATIC_ADDRESS			AT %MW0	:	ARRAY[1..16000] OF WORD;
+	
+	ARMATURE_COMMAND		(*AT %MW0*)			:	ARRAY [1..ARMATURE_QUANTITY] OF WORD;
+	ARMATURE_STATE			:	ARRAY [1..ARMATURE_QUANTITY] OF DWORD;
+	ARMATURE_STATE_BYTE		:	ARRAY [1..ARMATURE_QUANTITY] OF BYTE;	//0,1,2,3 среднее, закрыт, открыт, авария
+	ARMATURE_STATE_OPCUA	:	ARRAY [1..ARMATURE_QUANTITY] OF ArmatureStateUnion;//ArmatureCommandStructure;//ArmatureStateUnion;
+	SELECTED_ARMATURE_OPCUA	:	ArmatureCommandStructure;
+	ARMATURE_ANALOG_OPCUA	:	ARRAY [1..ARMATURE_QUANTITY] OF ObjectAnalogData;	//Аналоги арматуры
+	
+	PROTECT_COMMAND			:	ARRAY [1..PROTECT_QUANTITY] OF WORD;
+	PROTECT_STATE			:	ARRAY [1..PROTECT_QUANTITY] OF DWORD;//
+	SELECTED_PROTECT_OPCUA	:	ProtectCommandStructure;//ProtectStateUnion;
+	PROTECT_STATE_OPCUA		:	ARRAY [1..PROTECT_QUANTITY] OF ProtectStateUnion;//
+	PROTECT_MANAGER_DATA	:	ProtectManagerData;		//Менеджер защит
+	
+	REGULATOR_STATE			:	ARRAY [1..REGULATOR_QUANTITY] OF DWORD;//
+	REGULATOR_STATE_OPCUA	:	ARRAY [1..REGULATOR_QUANTITY] OF PidStateUnion;//PidState;//	
+	REGULATOR_TREND_DATA	:	ARRAY [1..REGULATOR_QUANTITY] OF PidTrendData;//
+	REGULATOR_MANAGER_DATA	:	DigitalManagerData;		//Менеджер привязок PID
+	REGULATOR_SETTINGS_DATA	:	PidManagerData;			//Менеджер настроек PID
+		
+	FILE_COMMAND_PANEL		:	CommandStructure;
+	EVENT_MANAGER_DATA		:	EventManagerData;		//Менеджер событий
+	
+	DI_MANAGER_DATA			:	DigitalManagerData;		//Менеджер привязок DI
+	DO_MANAGER_DATA			:	DigitalManagerData;		//Менеджер привязок DO
+	AI_MANAGER_DATA			:	DigitalManagerData;		//Менеджер привязок AI
+	AI_SETTINGS_DATA		:	AiSettingsData;			//Менеджер настроек шкалирования аналогов
+	
+	DI_MAIN					:	ARRAY[1..DI_MODUL_QUANTITY] OF DWORD;				//
+	DO_MAIN					:	ARRAY[1..DO_MODUL_QUANTITY] OF DWORD;				//
+	AI_MAIN					:	ARRAY[1..AI_QUANTITY] OF AinChData;					//Первичка с AI со словом сотояния BYTE
+	AI_MAIN_IN				:	ARRAY[1..AI_QUANTITY] OF REAL;						//Первичка с AI
+	AI_MAIN_OUT				:	ARRAY[1..AI_QUANTITY] OF REAL;//AiChData;			//Готовый аналоговый канал со словом состояния DWORD(после шкалирования)
+	AI_MAIN_STATE			:	ARRAY[1..AI_QUANTITY] OF DWORD;						//Слово состояния аналогового канала
+	AI_MAIN_OPCUA			:	ARRAY[1..AI_QUANTITY] OF AiChData;
+	AI_MODUL_ERROR			:	ARRAY[1..AI_MODUL_QUANTITY] OF BOOL;				//Авария аналогового модуля (HwError)
+	DI_MODUL_ERROR			:	ARRAY[1..DI_MODUL_QUANTITY] OF BOOL;				//Авария дискретного модуля (HwError)
+	MODUL_ERROR				AT %MW0	:	ARRAY[1..ALL_MODUL_QUANTITY] OF BOOL;				//Авария всех модулей в проекте последовательно крейт за крейтом(HwError)
+	PLC_NUMBER				:	WORD:= 1;											//0- Нет ПЛК, 1-ШУН, 2-АСУТП
+	
+	//AO_MAIN_OUT			:	ARRAY[1..AO_QUANTITY] OF AiChData;					//Готовый аналоговый канал (после шкалирования)
+END_VAR

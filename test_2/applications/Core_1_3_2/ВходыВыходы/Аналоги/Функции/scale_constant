@@ -1,0 +1,14 @@
+﻿//{attribute 'qualified_only'} Порядковый номер датчика в AI_GROUPE_SENSOR
+VAR_GLOBAL CONSTANT
+	min_value:WORD:=1;//Минимальное входное значение
+	max_value:WORD:=2;//Максимальное входное значение
+	min_scale:WORD:=3;//Минимум масштабирования
+	max_scale:WORD:=4;//Максимум масштабирования
+	min_warning:WORD:=5;//Минимум предупреждение
+	max_warning:WORD:=6;//Максимум предупреждение
+	min_alarm:WORD:=7;//Минимум тревога
+	max_alarm:WORD:=8;//Максимум тревога
+	average:WORD:=9;//Сглаживание входного значения
+	sensor_num:WORD:=10;//Номер датчика
+
+END_VAR

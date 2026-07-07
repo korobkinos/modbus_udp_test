@@ -1,0 +1,5 @@
+﻿TYPE PidSettings :
+STRUCT
+	Number			:	ARRAY[1..REGULATOR_QUANTITY] OF PidData;
+END_STRUCT
+END_TYPE

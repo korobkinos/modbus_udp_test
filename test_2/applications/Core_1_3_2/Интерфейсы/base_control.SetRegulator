@@ -1,0 +1,16 @@
+﻿METHOD SetRegulator : BOOL
+VAR_INPUT
+	(*Номер объекта*)
+	ObjectNumber	: WORD;
+	(*Значение аналога*)
+	Value	: PidTrendData;//PidLinkData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF ObjectNumber > 0 AND ObjectNumber <= GetObjectCount() THEN
+	IF _object_itf[ObjectNumber] <> NULL THEN
+		_object_itf[ObjectNumber].SetRegulator(Value);
+		SetRegulator:= TRUE;
+	END_IF
+END_IF

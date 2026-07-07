@@ -1,0 +1,22 @@
+﻿//{attribute 'qualified_only'}
+VAR_GLOBAL PERSISTENT RETAIN
+	SETTINGS.DATA		:	SettingsData;
+(*
+	//SETTINGS.ARMATURE_DIGITAL_BINDING	:	ArmatureDigitalBindingSettings;
+	SETTINGS.DI_DIGITAL_BINDING			(*AT %MW30000*)	:	DiBindingSettings;
+	SETTINGS.DO_DIGITAL_BINDING			(*AT %MW30000*)	:	DoBindingSettings;
+	SETTINGS.AI_DIGITAL_BINDING			(*AT %MW30000*)	:	AiBindingSettings;
+	SETTINGS.PID_BINDING				(*AT %MW30000*)	:	PidBindingSettings;					//Привязка регулятора к объекту (к арматуре)
+	SETTINGS.PROTECT_SETTINGS			(*AT %MW30000*)	:	ProtectSettings;		//Привязка датчиков защит к битам объектов
+	
+	//AO_DIGITAL_BINDING				(*AT %MW30000*)	:	AoBindingSettings;
+	SETTINGS.AI_SETTINGS								:	SensorSettings;
+	SETTINGS.PID_SETTINGS								:	PidSettings;
+	SETTINGS.ARMATURE_SETTINGS			(*AT %MW30000*)	:	ArmatureSettings;					//Настройка армтуры
+	SETTINGS.DI_INVERSE									:	ARRAY[1..DI_QUANTITY] OF BOOL;
+	
+	SETTINGS.ARMATURE_EVENT_SETTINGS					:	ArmatureEventSettings;				//Настройки событий есть только у тех объектов, у которых есть команды
+	SETTINGS.PROTECT_EVENT_SETTINGS						:	ProtectEventSettings;				//Настройки событий есть только у тех объектов, у которых есть команды
+	//SETTINGS.DO_EVENT_SETTINGS						:	DoEventSettings;					//Тут под вопросом пока, надо ли?
+*)	
+END_VAR

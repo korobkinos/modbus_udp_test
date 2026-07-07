@@ -1,0 +1,15 @@
+﻿METHOD SaveProtectSettings : BOOL
+VAR_INPUT
+	settings_data	:	POINTER TO ProtectManagerData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF settings_data <> 0 THEN
+	IF settings_data^.SelectedNumber > 0 AND settings_data^.SelectedNumber  <= GetObjectCount() THEN
+		IF settings_data^.Command = 1 THEN
+			SETTINGS.DATA.PROTECT_SETTINGS.Number[settings_data^.SelectedNumber]:= settings_data^.Settings;
+			SaveProtectSettings:= TRUE;
+		END_IF
+	END_IF
+END_IF

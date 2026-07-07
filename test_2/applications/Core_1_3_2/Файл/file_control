@@ -1,0 +1,86 @@
+﻿FUNCTION_BLOCK file_control
+VAR_INPUT
+	save			:	BOOL;
+	read			:	BOOL;
+	file_name		:	STRING:='retain_settings.txt';
+	w_r_device		:	WORD;			// Выбор устройства для чтения/записи СД карта -1, внутренняя память - 0
+END_VAR
+VAR_IN_OUT
+	buffer				:	SettingsData;		//SETTINGS_DATA;
+	value_w_r			:	DWORD;			// Количество байт
+END_VAR
+VAR_OUTPUT
+	file_massage		:	WSTRING;
+	
+END_VAR
+VAR
+	file_case			:	WORD:=0;
+	res_open_wr			:	POINTER TO SysFile.RTS_IEC_HANDLE;
+	res_open_rd			:	POINTER TO SysFile.RTS_IEC_HANDLE;
+	res_file_write		:	DWORD;
+	res_file_read		:	DWORD;
+
+	write_trig			:	r_trig;
+	read_trig			:	r_trig;
+	file_close_error	:	UDINT;
+	file_open_error		:	UDINT;
+	file_read_error		:	UDINT;
+	file_write_error	:	UDINT;
+	tof_massage			:	TOF;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+// Установка пути для чтения/записи
+//file_name:= 'project_settings.txt';
+IF w_r_device = 1 THEN
+	//file_name:= '/mnt/ufs/media/mmcblk0p1/project_settings';
+	//file_name:= '/mnt/user/codesys/sd0/project_settings.txt';//ПУТь REGUL-200
+	//file_name:= '/sd0/settings/project_settings.txt';
+	file_name:= '/mnt/user/codesys/usb0/retain_settings.txt';//ПУТь REGUL-500
+	//file_name:= '/mnt/user/codesys/sd0/project_settings.txt';
+END_IF
+(*IF w_r_device = 2 THEN
+	file_name:= '/mnt/ufs/media/sda/project_settings';
+END_IF
+IF w_r_device = 3 THEN
+	file_name:= '/mnt/ufs/media/sdb/project_settings';
+END_IF
+*)
+// Определение момента чтения/записи
+write_trig(clk:= save);
+read_trig(clk:= read);
+// Управление кейсом
+file_case:=0;
+IF write_trig.q THEN file_case:=1; END_IF
+IF read_trig.q THEN	file_case:=2; END_IF
+
+tof_massage(in:= save, PT:= T#1000MS);
+tof_massage(in:= read, PT:= T#1000MS); 
+
+CASE file_case OF
+	
+	0:		;
+	1:		res_open_wr:= SysFile.SysFileOpen(file_name, SysFile.AM_WRITE, file_open_error);
+			IF res_open_wr <> 16#FFFFFFFF THEN
+				res_file_write:= SysFile.SysFileWrite(res_open_wr, ADR(buffer), SIZEOF(buffer), file_write_error);
+				file_close_error:=SysFile.SysFileClose(res_open_wr);
+				file_massage:= "Успешно!";value_w_r:= res_file_write;	
+			ELSE res_file_write:= 0; file_massage:= "Ошибка!";value_w_r:= res_file_write;	
+			END_IF
+	2:		// Получаем значение номера файла
+			res_open_rd:= SysFile.SysFileOpen(file_name, SysFile.AM_READ, file_open_error);
+			// Если файл откыт...		
+			IF res_open_rd <> 16#FFFFFFFF THEN
+				// ...читаем байты из файла
+				res_file_read:= SysFile.SysFileRead(res_open_rd, ADR(buffer), SIZEOF(buffer), file_read_error);
+				// Закрываем файл, с номером открытого ранее	
+				file_close_error:=SysFile.SysFileClose(res_open_rd);
+				file_massage:= "Успешно!";value_w_r:= res_file_read;
+			ELSE res_file_read:= 0; file_massage:= "Ошибка!";value_w_r:= res_file_read;	
+			END_IF
+END_CASE
+IF NOT tof_massage.Q THEN
+	file_massage:= "";
+	value_w_r:=0;
+END_IF

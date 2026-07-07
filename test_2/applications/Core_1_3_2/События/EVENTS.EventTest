@@ -1,0 +1,38 @@
+﻿METHOD PRIVATE EventTest : BOOL	//Метод возвращает состояние события
+VAR_INPUT
+	EventNumber			:	WORD;		//Номер события
+END_VAR
+
+VAR
+	event_data			:	POINTER TO EventData;
+	object_state		:	DWORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF EventNumber = 0 OR EventNumber > EVENT_QUANTITY THEN
+	RETURN;
+END_IF
+event_data:= ADR(SETTINGS.DATA.EVENT_SETTINGS.Number[EventNumber]);
+IF event_data = 0 THEN
+	RETURN;
+END_IF
+IF event_data^.Value[event_enable] = 0 THEN
+	RETURN;	
+END_IF
+IF MAIN.main_itf[event_data^.Value[itf_number]] = NULL OR MAIN.main_itf[event_data^.Value[itf_director]] = NULL THEN
+	RETURN;	
+END_IF
+IF event_data^.Value[object_number] = 0 OR event_data^.Value[object_number] > MAIN.main_itf[event_data^.Value[itf_number]].GetObjectCount() THEN
+	RETURN;	
+END_IF
+IF event_data^.Value[object_director] = 0 OR event_data^.Value[object_director] > MAIN.main_itf[event_data^.Value[itf_director]].GetObjectCount() THEN
+	RETURN;	
+END_IF
+IF event_data^.Value[object_director_bit] <= 31 THEN
+	object_state:= MAIN.main_itf[event_data^.Value[itf_director]].GetState(event_data^.Value[object_director]);//Получаем событие
+	EventTest:= GetBit(object_state, WORD_TO_BYTE(event_data^.Value[object_director_bit]));
+	IF event_data^.Value[invert_bit] > 0 THEN
+		EventTest:= NOT EventTest;
+	END_IF
+END_IF

@@ -1,0 +1,8 @@
+﻿TYPE ArmatureCommandStructure EXTENDS CommandStructure :
+STRUCT
+	//Command			:	WORD;
+	State			:	ArmatureStateUnion;
+	AnalogData		:	ObjectAnalogData;//ARRAY [1..OBJECT_ANALOG_QUANTITY] OF AiChData;
+	
+END_STRUCT
+END_TYPE

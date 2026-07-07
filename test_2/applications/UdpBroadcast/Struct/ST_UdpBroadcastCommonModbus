@@ -1,0 +1,19 @@
+﻿{attribute 'pack_mode' := '1'}
+(*
+  Общие настройки UDP в Holding Registers (Modbus).
+  4 IP-адреса приемников хранятся как WORD-октеты.
+  0.0.0.0 выключает соответствующий слот.
+*)
+TYPE ST_UdpBroadcastCommonModbus :
+STRUCT
+    target_ip : ARRAY[1..4] OF ST_UdpIPv4Modbus := [
+        (octet_0 := 192, octet_1 := 168, octet_2 := 4, octet_3 := 255),
+        (octet_0 := 0, octet_1 := 0, octet_2 := 0, octet_3 := 0),
+        (octet_0 := 0, octet_1 := 0, octet_2 := 0, octet_3 := 0),
+        (octet_0 := 0, octet_1 := 0, octet_2 := 0, octet_3 := 0)
+    ];
+
+    (* Статус IP-слота: 0 = используется, 1 = не используется, 2 = ошибка IP, 3 = дубликат IP. *)
+    target_status : ARRAY[1..4] OF WORD := [WORD#0, WORD#1, WORD#1, WORD#1];
+END_STRUCT
+END_TYPE

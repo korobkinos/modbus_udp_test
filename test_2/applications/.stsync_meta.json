@@ -1,0 +1,8 @@
+﻿{
+  "entries": {
+    "core_1_3_2/глобальныепеременные/gvl_retain": {
+      "prefer_persistent_gvl": true
+    }
+  }, 
+  "version": 1
+}

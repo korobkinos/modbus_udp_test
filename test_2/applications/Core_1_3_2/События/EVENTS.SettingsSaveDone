@@ -1,0 +1,12 @@
+﻿METHOD SettingsSaveDone : BOOL
+VAR_INPUT
+END_VAR
+VAR
+	//counter		:	WORD;
+	zero_data		:	EventData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+MODBUS.EVENT_MANAGER_DATA.Settings:= zero_data;
+MODBUS.EVENT_MANAGER_DATA.Command:= 2;

@@ -1,0 +1,20 @@
+﻿METHOD SetCommand : BOOL
+VAR_INPUT
+	Command	: WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF Command = ControlOn THEN
+	_State^.DwValue.0:= TRUE;
+END_IF
+IF Command = ControlOff THEN
+	_State^.DwValue.0:= FALSE;
+END_IF
+
+IF Command = SetOn THEN
+	_State^.DwValue.1:= FALSE;
+END_IF
+IF Command = SetOff THEN
+	_State^.DwValue.1:= TRUE;
+END_IF

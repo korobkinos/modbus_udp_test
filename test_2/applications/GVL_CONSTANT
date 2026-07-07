@@ -1,0 +1,23 @@
+﻿//{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	ITF_QUANTITY			:	WORD:= 6;	//Количество реализаций интерфейсов
+	ARMATURE_QUANTITY		:	WORD:= 45;	//Количество арматуры в группе АРМАТУРА
+	PROTECT_QUANTITY		:	WORD:= 16;	//Количество защит
+	REGULATOR_QUANTITY		:	WORD:= 4;	//Количество регуляторов
+	EVENT_QUANTITY			:	WORD:= 100;	//Количество возможных событий
+	
+	AI_QUANTITY				:	WORD:= 104;	//Количество входных аналоговых каналов в группе АНАЛОГОВЫЕ ВХОДЫ
+	AO_QUANTITY				:	WORD:= 0;	//Количество выходных аналоговых каналов в группе АНАЛОГОВЫЕ ВХОДЫ
+	DI_QUANTITY				:	WORD:= 512;	//Количество DI в группе ДИСКРЕТНЫЕ ВХОДЫ
+	DO_QUANTITY				:	WORD:= 192;	//Количество DO в группе ДИСКРЕТНЫЕ ВЫХОДЫ
+	
+	AI_MODUL_QUANTITY		:	WORD:= 13;	//Количество модулей AI в проекте
+	DI_MODUL_QUANTITY		:	WORD:= 16;	//Количество модулей DI в проекте
+	DO_MODUL_QUANTITY		:	WORD:= 6;	//Количество модулей DO в проекте
+	ALL_MODUL_QUANTITY		:	WORD:= 51;	//Количество модулей всех итогово в проекте
+	
+	OBJECT_ANALOG_QUANTITY	:	WORD:= 5;	//Количество аналогов в объекте
+	
+	FILE_HEADER_UNITE		:	STRING(255):= 'Piter_Mosskovsskaya_SHUN_05_07_2026$0A';
+	
+END_VAR

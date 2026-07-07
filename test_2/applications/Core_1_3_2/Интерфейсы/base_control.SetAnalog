@@ -1,0 +1,21 @@
+﻿METHOD (*ABSTRACT*) SetAnalog : BOOL
+VAR_INPUT
+	(*Номер объекта*)
+	ObjectNumber	: WORD;
+	(*Номер аналога*)
+	AnalogNumber	: WORD;
+	(*Значение аналога*)
+	Value	: AiChData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF _analog_quantity > 0 THEN
+	IF ObjectNumber > 0 AND ObjectNumber <= GetObjectCount() AND AnalogNumber > 0 AND AnalogNumber <= _analog_quantity THEN
+		IF _object_itf[ObjectNumber] <> NULL THEN
+			_object_itf[ObjectNumber].SetAnalog(AnalogNumber, Value);
+		//.analog_data.Number[AnalogNumber]:= Value;
+		SetAnalog:= TRUE;
+		END_IF
+	END_IF
+END_IF

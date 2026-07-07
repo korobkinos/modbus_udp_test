@@ -1,0 +1,24 @@
+﻿TYPE SettingsData :
+STRUCT
+(************НАСТРОЙКИ ПРИВЯЗОК ВХОДОВ/ВЫХОДОВ****************)
+	DI_DIGITAL_BINDING			(*AT %MW30000*)	:	DiBindingSettings;
+	DO_DIGITAL_BINDING			(*AT %MW30000*)	:	DoBindingSettings;
+	AI_DIGITAL_BINDING			(*AT %MW30000*)	:	AiBindingSettings;
+	PID_BINDING					(*AT %MW30000*)	:	PidBindingSettings;		//Привязка регулятора к объекту (к арматуре)
+	PROTECT_SETTINGS			(*AT %MW30000*)	:	ProtectSettings;		//Привязка датчиков защит к битам объектов
+		
+	//AO_DIGITAL_BINDING			(*AT %MW30000*):	AoBindingSettings;	//РЕЗЕРВ
+	
+	(*******************НАСТРОЙКИ ОБЪЕКТОВ***********************)
+	AI_SETTINGS									:	SensorSettings;
+	PID_SETTINGS								:	PidSettings;
+	ARMATURE_SETTINGS			(*AT %MW30000*)	:	ArmatureSettings;		//Настройка армтуры
+	DI_INVERSE									:	ARRAY[1..DI_QUANTITY] OF BOOL;
+	
+	(*********************НАСТРОЙКИ СОБЫТИЙ ОБЪЕКТОВ*************************)
+	//ARMATURE_EVENT_SETTINGS						:	ArmatureEventSettings;				//Настройки событий есть только у тех объектов, у которых есть команды
+	//PROTECT_EVENT_SETTINGS						:	ProtectEventSettings;				//Настройки событий есть только у тех объектов, у которых есть команды
+	//DO_EVENT_SETTINGS							:	DoEventSettings;					//Тут под вопросом пока, надо ли?
+	EVENT_SETTINGS								:	EventSettings;				//Настройки событий есть только у тех объектов, у которых есть команды
+END_STRUCT
+END_TYPE

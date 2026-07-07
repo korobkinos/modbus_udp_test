@@ -1,0 +1,8 @@
+﻿METHOD SetCommand : BOOL
+VAR_INPUT
+	Command	: WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+RETURN;

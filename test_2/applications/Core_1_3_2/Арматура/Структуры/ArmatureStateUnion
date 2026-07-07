@@ -1,0 +1,6 @@
+﻿TYPE ArmatureStateUnion :
+UNION
+    DwValue		:	DWORD;						// Целое значение для передачи
+    Flags		:	ArmatureStateBit;		// Структура с именованными битами
+END_UNION
+END_TYPE

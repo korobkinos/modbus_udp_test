@@ -1,0 +1,15 @@
+﻿METHOD PRIVATE SavePidSettings : BOOL
+VAR_INPUT
+	settings_data	:	POINTER TO PidManagerData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF settings_data <> 0 THEN
+	IF settings_data^.SelectedNumber > 0 AND settings_data^.SelectedNumber  <= GetObjectCount() THEN
+		IF settings_data^.Command = 1 THEN
+			SETTINGS.DATA.PID_SETTINGS.Number[settings_data^.SelectedNumber]:= settings_data^.Settings;
+			SavePidSettings:= TRUE;
+		END_IF
+	END_IF
+END_IF

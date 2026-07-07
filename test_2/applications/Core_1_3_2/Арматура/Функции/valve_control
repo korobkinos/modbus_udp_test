@@ -1,0 +1,33 @@
+﻿FUNCTION_BLOCK valve_control EXTENDS base_control
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	armature			:	ARRAY [1..ARMATURE_QUANTITY] OF valve_singl;
+	counter				:	WORD;
+	command_singl		:	CommandStructure;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+_objects_quantity:= ARMATURE_QUANTITY;
+_analog_quantity:= OBJECT_ANALOG_QUANTITY;//SIZEOF(armature[1].analog_data) / 8;
+
+FOR counter:= 1 TO ARMATURE_QUANTITY  DO
+	armature[counter](settings:= ADR(SETTINGS.DATA.ARMATURE_SETTINGS.Number[counter]));
+	_object_itf[counter]:= armature[counter];
+	command_singl.Command:= MODBUS.ARMATURE_COMMAND[counter](* OR MODBUS.ARMATURE_OPCUA[counter].Command*);
+	command_singl.SelectedNumber:= counter;
+	IF command_singl.Command <> 0 THEN
+		SetCommand(command_singl);
+	END_IF
+	MODBUS.ARMATURE_STATE[counter]:= GetState(counter);
+	//MODBUS.ARMATURE_OPCUA[counter].State.DwValue:= MODBUS.ARMATURE_STATE[counter];
+	MODBUS.ARMATURE_STATE_OPCUA[counter].DwValue:= MODBUS.ARMATURE_STATE[counter];
+	MODBUS.ARMATURE_STATE_BYTE[counter]:= status_byte(MODBUS.ARMATURE_STATE_OPCUA[counter].Flags.PhysClosed, MODBUS.ARMATURE_STATE_OPCUA[counter].Flags.PhysOpen);
+	IF armature[counter]._AnalogData <> 0 THEN
+		MODBUS.ARMATURE_ANALOG_OPCUA[counter]:= armature[counter]._AnalogData^;
+	END_IF
+	//MODBUS.ARMATURE_ANALOG_OPCUA[counter]:= armature[counter]. .AnalogData;
+END_FOR

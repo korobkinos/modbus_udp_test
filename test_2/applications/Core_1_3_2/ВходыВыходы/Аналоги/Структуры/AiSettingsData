@@ -1,0 +1,5 @@
+﻿TYPE AiSettingsData EXTENDS CommandStructure :
+STRUCT
+	Settings			:	ScaleData;
+END_STRUCT
+END_TYPE

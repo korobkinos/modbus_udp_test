@@ -1,0 +1,6 @@
+﻿TYPE AiChData	:
+STRUCT
+	Value		:	REAL;
+	Status		:	AnalogStateUnion;
+END_STRUCT
+END_TYPE

@@ -1,0 +1,52 @@
+﻿FUNCTION_BLOCK protect_singl EXTENDS base_singl
+VAR_INPUT
+	delay_time		:	POINTER TO WORD;//Задержка включения выходного сигнала в сек
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	state_local		:	ProtectStateUnion;
+	protect_ton		:	ton;
+	protect_trig	:	r_trig;
+	
+END_VAR
+
+VAR CONSTANT
+	NoCommand		:	WORD:=0;
+	ControlOn		:	WORD:=1;			//На контроль
+	ControlOff		:	WORD:=2;			//Снять с контроля
+	SetOn			:	WORD:=3;			//Ввести
+	SetOff			:	WORD:=4;			//Вывести
+	Reset			:	WORD:=5;			//Сброс аварии
+END_VAR
+
+// === IMPLEMENTATION ===
+
+_State:= ADR(state_local);
+//block_tof(IN:= block_set, PT:= T#100MS);
+//_State^.Flags.Blocked:= block_tof.Q;
+SetCommand(0);
+
+//Определение постановки на контроль
+protect_trig(	clk:= state_local.Flags.OnControl);
+
+//Сброс при постановке на контроль
+IF protect_trig.Q THEN
+	state_local.Flags.Warning:= FALSE;
+	state_local.Flags.Alarm:= FALSE;
+END_IF
+
+//Определение задержки
+IF delay_time <> 0 THEN
+protect_ton(IN:= state_local.Flags.SensorUnit AND state_local.Flags.OnControl,
+			PT:= WORD_TO_TIME(delay_time^ * 1000));
+END_IF
+
+//Установка выходов защит, в зависимости от состояния защиты
+IF protect_ton.Q THEN
+	IF NOT state_local.Flags.NotOn THEN
+		state_local.Flags.Alarm:= TRUE;
+	ELSE
+		state_local.Flags.Warning:= TRUE;
+	END_IF
+END_IF

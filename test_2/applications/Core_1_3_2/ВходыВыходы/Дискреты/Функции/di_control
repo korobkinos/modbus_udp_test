@@ -1,0 +1,66 @@
+﻿FUNCTION_BLOCK di_control EXTENDS base_control
+VAR_INPUT
+END_VAR
+VAR
+	di_local				:	ARRAY[1..DI_QUANTITY] OF BOOL;
+	di_object				:	ARRAY[1..DI_QUANTITY] OF di_singl;
+	state_temp				:	DWORD;
+	counter					:	WORD;
+	//binding_tof				:	TOF;
+	//binding_ton				:	TON;
+	
+	_digitai_local			:	POINTER TO ARRAY[1..DI_QUANTITY] OF BOOL;
+
+END_VAR
+
+// === IMPLEMENTATION ===
+
+_objects_quantity:= DI_QUANTITY;
+_digital_binding:= ADR(SETTINGS.DATA.DI_DIGITAL_BINDING);
+_digitai_local:= ADR(di_local);
+
+//Получаем физические входы
+di_local:= ModulToDi(ADR(MODBUS.DI_MAIN), ADR(MODBUS.DI_MODUL_ERROR), ADR(SETTINGS.DATA.DI_INVERSE));
+
+FOR counter:= 1 TO DI_QUANTITY  DO
+	di_object[counter]();
+	state_temp.0:= di_local[counter];
+	_object_itf[counter]:= di_object[counter];
+	di_object[counter].State:= state_temp;
+	//Привязка входа к биту объекта
+	IF GetBinding(ObjectNumber:= counter, settings=> digital_binding) AND MAIN.main_itf[digital_binding.ItfNumber] <> NULL THEN
+		MAIN.main_itf[digital_binding.ItfNumber].SetState(digital_binding.ObjectNumber, digital_binding.BitNumber, di_local[counter]);
+	END_IF
+END_FOR
+
+//Проверяем повторную привязку
+MODBUS.DI_MANAGER_DATA.DuplicateNumber:= GetBusy(MODBUS.DI_MANAGER_DATA.BindingData) OR Service();
+
+//Получаем настройки выбранного .DI
+IF MODBUS.DI_MANAGER_DATA.Command = 2 THEN
+	GetBinding(ObjectNumber:= MODBUS.DI_MANAGER_DATA.SelectedNumber, Settings=> MODBUS.DI_MANAGER_DATA.BindingData);
+	//MODBUS.DI_MANAGER_DATA.BindingData:= GetBinding(MODBUS.DI_MANAGER_DATA.SelectedNumber);
+END_IF
+
+//Запись настроек по команде
+binding_tof(IN:= SaveBinding(ADR(MODBUS.DI_MANAGER_DATA)), PT:= T#1S);
+binding_ton(IN:= binding_tof.Q, PT:= T#500MS);
+IF binding_ton.Q THEN	//Команда сбрасывается при успешной записи
+	MODBUS.DI_MANAGER_DATA.Command:= 2;	//Команда сбрасывается при успешной записи (не особо нужно наверное..)
+	MODBUS.DI_MANAGER_DATA.BindingData.ItfNumber:= 0;
+	MODBUS.DI_MANAGER_DATA.BindingData.ObjectNumber:= 0;
+	MODBUS.DI_MANAGER_DATA.BindingData.BitNumber:= 0;
+END_IF
+
+//Чтение настроек из файла
+IF MODBUS.DI_MANAGER_DATA.Command = 4 THEN
+	MODBUS.DI_MANAGER_DATA.Command:= ReadBindingFile('di_binding.txt');//('/mnt/user/codesys/usb0/di_binding.txt');
+END_IF
+
+file_header:= CONCAT(FILE_HEADER_UNITE, 'ObjectNumber$09ItfBinding$09ObjectBinding$09BitBinding$0A');
+//Сохранение настроек в файл
+IF MODBUS.DI_MANAGER_DATA.Command = 5 THEN
+	IF SaveBindingFile('di_binding.txt', file_header)THEN//('/mnt/user/codesys/usb0/di_binding.txt');
+		MODBUS.DI_MANAGER_DATA.Command:= 6;//Успех
+	END_IF
+END_IF

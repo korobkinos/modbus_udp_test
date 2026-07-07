@@ -1,0 +1,5 @@
+﻿METHOD GetObjectCount : WORD (*Возвращает количество объектов в интерфейсе*)
+
+// === IMPLEMENTATION ===
+
+GetObjectCount:= _objects_quantity;

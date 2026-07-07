@@ -1,0 +1,6 @@
+﻿METHOD SetRegulator : BOOL
+VAR_INPUT
+	Value			:	PidTrendData;//PidLinkData;
+END_VAR
+
+// === IMPLEMENTATION ===

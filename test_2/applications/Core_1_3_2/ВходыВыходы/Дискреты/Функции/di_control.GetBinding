@@ -1,0 +1,19 @@
+﻿//{warning 'добавить реализацию метода'}
+METHOD GetBinding : BOOL	//Получаем привязки вх/вых одного выбранного объекта
+VAR_INPUT
+	ObjectNumber	: WORD;	(*Номер объекта в группе*)
+END_VAR
+VAR_OUTPUT
+	Settings		:	DigitalBindingData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF _digital_binding <> 0 THEN
+	IF ObjectNumber > 0 AND ObjectNumber <= GetObjectCount() THEN
+		Settings:= _digital_binding^.Number[ObjectNumber];
+	END_IF
+	IF (*settings.BitNumber <= 31 AND*) settings.ItfNumber <> 0 AND settings.ObjectNumber <> 0 THEN
+		GetBinding:= TRUE;
+	END_IF
+END_IF

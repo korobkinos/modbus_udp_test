@@ -1,0 +1,25 @@
+﻿METHOD PRIVATE ModulErrorToChError : ARRAY[1..AI_QUANTITY] OF BOOL;//Функция распределяет аварии модулей в аварии каналов
+VAR_INPUT
+	modul_error				:	POINTER TO ARRAY[1..AI_MODUL_QUANTITY] OF BOOL;
+	//settings_binding		:	POINTER TO ARRAY[1..AI_MODUL_QUANTITY] OF ModulErrorBindingSettings;
+	settings				:	POINTER TO ARRAY[1..AI_MODUL_QUANTITY] OF BYTE; //8,8,16,16
+END_VAR
+VAR
+	channel_counter			:	WORD;
+	modul_counter			:	WORD;
+	settings_counter		:	WORD;
+	
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF modul_error <> 0 AND settings <> 0 THEN
+	FOR modul_counter:= 1 TO AI_MODUL_QUANTITY DO
+		FOR settings_counter:= 1 TO settings^[modul_counter] DO
+			channel_counter:= channel_counter + 1;
+			IF channel_counter <= AI_QUANTITY THEN
+				ModulErrorToChError[channel_counter]:= modul_error^[modul_counter];
+			END_IF
+		END_FOR
+	END_FOR
+END_IF

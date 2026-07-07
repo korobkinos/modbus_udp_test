@@ -1,0 +1,6 @@
+﻿METHOD GetState : DWORD
+VAR_INPUT
+	ObjectNumber		:	WORD;		//Номер объекта в группе
+END_VAR
+
+// === IMPLEMENTATION ===

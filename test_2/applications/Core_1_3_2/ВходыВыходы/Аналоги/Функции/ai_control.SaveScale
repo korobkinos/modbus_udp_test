@@ -1,0 +1,15 @@
+﻿METHOD PRIVATE SaveScale : BOOL
+VAR_INPUT
+	ai_settings_data	:	POINTER TO AiSettingsData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF ai_settings_data <> 0 THEN
+	IF ai_settings_data^.SelectedNumber > 0 AND ai_settings_data^.SelectedNumber  <= GetObjectCount() THEN
+		IF ai_settings_data^.Command = 1 THEN
+			SETTINGS.DATA.AI_SETTINGS.Number[ai_settings_data^.SelectedNumber]:= ai_settings_data^.Settings;
+			SaveScale:= TRUE;
+		END_IF
+	END_IF
+END_IF

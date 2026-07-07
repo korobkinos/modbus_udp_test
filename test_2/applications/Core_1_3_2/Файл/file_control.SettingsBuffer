@@ -1,0 +1,21 @@
+﻿METHOD SettingsBuffer : BOOL
+VAR_INPUT
+	ToFile			:	BOOL;//Из настроек в файл
+	ToSettings		:	BOOL;//Из файла в настройки
+END_VAR
+VAR_IN_OUT
+	SettingsFile	:	SettingsData;
+	
+END_VAR
+VAR
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF ToFile THEN
+	SettingsFile:= SETTINGS.DATA;
+END_IF
+
+IF ToSettings THEN
+	SETTINGS.DATA:= SettingsFile;
+END_IF

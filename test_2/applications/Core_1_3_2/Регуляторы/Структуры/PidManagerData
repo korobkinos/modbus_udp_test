@@ -1,0 +1,5 @@
+﻿TYPE PidManagerData EXTENDS CommandStructure:
+STRUCT
+	Settings			:	PidData;
+END_STRUCT
+END_TYPE

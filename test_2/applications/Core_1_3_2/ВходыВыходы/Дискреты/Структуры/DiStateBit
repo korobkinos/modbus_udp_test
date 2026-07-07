@@ -1,0 +1,14 @@
+﻿TYPE DiStateBit :
+STRUCT
+    // Доступ через имена битов
+    PhysTrue			: BIT;		// Физический концевик TRUE
+    //PhysFalse			: BIT;		// Физический концевик FALSE 
+	//Blocked			: BIT;		// Заблокирован
+	//Error				: BIT;		// Авария
+	
+	//
+	//
+    // Резервные биты
+
+END_STRUCT
+END_TYPE

@@ -1,0 +1,6 @@
+﻿TYPE DiStateUnion :
+UNION
+    dwValue		:	DWORD;					// Целое значение для передачи
+    Flags		:	DiStateBit;			// Структура с именованными битами
+END_UNION
+END_TYPE

@@ -1,0 +1,5 @@
+﻿METHOD GetObjectCount : WORD		//Возвращает количество объектов в интерфейсе
+VAR_INPUT
+END_VAR
+
+// === IMPLEMENTATION ===

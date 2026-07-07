@@ -1,0 +1,64 @@
+﻿METHOD INTERNAL Service : WORD	//Проверка повторной привязки DI
+VAR_INPUT
+END_VAR
+
+VAR
+	counter					:	WORD;
+	digital_binding_data	:	DigitalBindingData;
+
+END_VAR
+
+// === IMPLEMENTATION ===
+
+FOR counter:= 1 TO GetObjectCount() DO
+	GetBinding(ObjectNumber:= counter, Settings=> digital_binding_data);
+	IF digital_binding_data.ItfNumber > 0 AND digital_binding_data.ObjectNumber > 0 THEN
+
+		//Проверяем несуществующие пути
+		IF MAIN.main_itf[digital_binding_data.ItfNumber] = NULL THEN
+			Service:= counter;
+			EXIT;
+		END_IF
+		
+		IF digital_binding_data.ObjectNumber > MAIN.main_itf[digital_binding_data.ItfNumber].GetObjectCount() THEN
+			Service:= counter;
+			EXIT;
+		END_IF
+	
+		Service:= GetBusy(digital_binding_data);
+		IF Service <> 0 AND Service <> counter THEN
+			Service:= counter;
+			EXIT;
+		END_IF
+		Service:= 0;
+	END_IF	
+END_FOR
+
+(*
+FOR index_counter:= 1 TO GetObjectCount() DO
+	GetBinding(ObjectNumber:= index_counter, Settings=> search_binding_data);
+	// Пропускаем нулевые значения сразу
+	IF search_binding_data.ItfNumber = 0 OR
+		search_binding_data.ObjectNumber = 0 THEN
+        CONTINUE;
+    END_IF
+	 // Ищем только среди последующих элементов (избегаем повторных сравнений)
+	FOR search_counter:= index_counter + 1 TO GetObjectCount() DO
+		GetBinding(ObjectNumber:= search_counter, Settings=> request_binding_data);
+		IF request_binding_data.ItfNumber = 0 OR
+			request_binding_data.ObjectNumber = 0 THEN
+			CONTINUE;
+		END_IF
+        
+		IF search_binding_data.ItfNumber = request_binding_data.ItfNumber AND
+			search_binding_data.ObjectNumber = request_binding_data.ObjectNumber AND
+			search_binding_data.BitNumber = request_binding_data.BitNumber THEN
+			Service:= search_counter;
+			EXIT;
+		END_IF
+	END_FOR
+	IF Service <> 0 THEN
+        EXIT;
+    END_IF
+END_FOR
+*)

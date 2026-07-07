@@ -1,0 +1,119 @@
+﻿FUNCTION_BLOCK pid_control EXTENDS di_control//ai_control
+VAR_INPUT
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	regulator			:	ARRAY [1..REGULATOR_QUANTITY] OF pid_singl;
+	object_state		:	DWORD;
+	pid_state			:	PidStateUnion;
+	command_local		:	CommandStructure;
+	command_regulator	:	PidTrendData;//PidLinkData;
+	settings_tof		:	TOF;
+	settings_ton		:	TON;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+_objects_quantity:= REGULATOR_QUANTITY;
+_analog_quantity:= OBJECT_ANALOG_QUANTITY;//SIZEOF(regulator[1].analog_data) / 8;
+_digital_binding:= ADR(SETTINGS.DATA.PID_BINDING);
+
+FOR counter:= 1 TO REGULATOR_QUANTITY  DO
+	regulator[counter](settings:= ADR(SETTINGS.DATA.PID_SETTINGS.Number[counter]), trend_data=> MODBUS.REGULATOR_TREND_DATA[counter]);
+	_object_itf[counter]:= regulator[counter];
+	MODBUS.REGULATOR_STATE[counter]:= GetState(counter);
+	MODBUS.REGULATOR_STATE_OPCUA[counter].DwValue:= MODBUS.REGULATOR_STATE[counter];
+	//IF regulator[counter]._AnalogData <> 0 THEN
+	//	MODBUS.REGULATOR_STATE_OPCUA[counter].AnalogData:= regulator[counter]._AnalogData^;
+	//END_IF
+	//MODBUS.REGULATOR_ANALOG[counter]:= MODBUS.REGULATOR_STATE_OPCUA[counter].AnalogData;
+	
+	//Привязка регулятора к объекту
+	//Мы должны привязываться не к конкретным битам в объекте, а к определенным структуре. Если структура существует
+	//Но тогда нужны какието новые методы установки этой структуры, как например SetAnalog или SetState
+	//Потому что привязывать нужно например, выход регулятора к SP другого регулятора. итд Это отдельная тема совсем!!!
+	//Привязка это одно, а метод объекта это другое. Иначе можно напривязывать к объектам, у которых эти биты и аналоги вообще не для того...
+	IF GetBinding(ObjectNumber:= counter, settings=> digital_binding) AND MAIN.main_itf[digital_binding.ItfNumber] <> NULL THEN
+		IF digital_binding.ObjectNumber > 0 AND digital_binding.ObjectNumber <= MAIN.main_itf[digital_binding.ItfNumber].GetObjectCount() THEN
+			object_state:= MAIN.main_itf[digital_binding.ItfNumber].GetState(digital_binding.ObjectNumber);//Получаем состояние привязанного объекта
+			SetState(counter, 0, object_state.8);//Устанавливаем автоматический режим регулятора
+			pid_state.DwValue:= GetState(counter);//Получаем своё состояние
+			//Если авария аналогового датчика регулятора, то переводим в ручку привязанный ИМ
+			IF pid_state.Flags.AnalogError(*AnalogError*) THEN
+				command_local.Command:= 7;(*Manual*)
+				command_local.SelectedNumber:= digital_binding.ObjectNumber;
+				MAIN.main_itf[digital_binding.ItfNumber].SetCommand(command_local);
+			END_IF
+			IF pid_state.Flags.On THEN
+				//object_state:= GetState(counter);
+				command_regulator:= MODBUS.REGULATOR_TREND_DATA[counter];
+				//command_regulator.Data[4]:= BIT_TO_REAL(pid_state.Flags.Up);//command_regulator.Up:= pid_state.Flags.Up;
+				//command_regulator.Data[5]:= BIT_TO_REAL(pid_state.Flags.Down);//command_regulator.Down:= pid_state.Flags.Down;
+				//command_regulator.Data[1]:= BIT_TO_REAL();//command_regulator.SP:= MODBUS.REGULATOR_TREND_DATA[counter].Data[1];
+				//command_regulator.PV:= MODBUS.REGULATOR_TREND_DATA[counter].Data[2];
+				MAIN.main_itf[digital_binding.ItfNumber].SetRegulator(digital_binding.ObjectNumber, command_regulator);
+				//MAIN.main_itf[digital_binding.ItfNumber].SetState(digital_binding.ObjectNumber, 4(*Up*), object_state.1);
+				//MAIN.main_itf[digital_binding.ItfNumber].SetState(digital_binding.ObjectNumber, 5(*Down*), object_state.2);
+			END_IF
+		END_IF
+	END_IF
+END_FOR
+
+//Проверяем повторную привязку
+MODBUS.REGULATOR_MANAGER_DATA.DuplicateNumber:= GetBusy(MODBUS.REGULATOR_MANAGER_DATA.BindingData) OR Service();
+
+//Получаем привязки выбранного AI
+IF MODBUS.REGULATOR_MANAGER_DATA.Command = 2 THEN
+	GetBinding(ObjectNumber:= MODBUS.REGULATOR_MANAGER_DATA.SelectedNumber, Settings=> MODBUS.REGULATOR_MANAGER_DATA.BindingData);
+	//MODBUS.PID_MANAGER_DATA.BindingData:= GetBinding(MODBUS.PID_MANAGER_DATA.SelectedNumber);
+END_IF
+
+//Запись привязок по команде
+binding_tof(IN:= SaveBinding(ADR(MODBUS.REGULATOR_MANAGER_DATA)), PT:= T#1S);
+binding_ton(IN:= binding_tof.Q, PT:= T#500MS);
+IF binding_ton.Q THEN	//Команда сбрасывается при успешной записи
+	MODBUS.REGULATOR_MANAGER_DATA.Command:= 2;
+	MODBUS.REGULATOR_MANAGER_DATA.BindingData.ItfNumber:= 0;
+	MODBUS.REGULATOR_MANAGER_DATA.BindingData.ObjectNumber:= 0;
+	MODBUS.REGULATOR_MANAGER_DATA.BindingData.BitNumber:= 0;
+END_IF
+
+//Получаем настройки выбранного PID
+IF MODBUS.REGULATOR_SETTINGS_DATA.Command = 2 THEN
+	MODBUS.REGULATOR_SETTINGS_DATA.Settings:= GetPidSettings(MODBUS.REGULATOR_SETTINGS_DATA.SelectedNumber);
+END_IF
+
+//Запись настроек PID по команде
+settings_tof(IN:= SavePidSettings(ADR(MODBUS.REGULATOR_SETTINGS_DATA)), PT:= T#1S);
+settings_ton(IN:= settings_tof.Q, PT:= T#500MS);
+IF settings_ton.Q THEN	//Команда сбрасывается при успешной записи
+	SettingsSaveDone();	
+END_IF
+
+//Чтение настроек из файла
+IF MODBUS.REGULATOR_MANAGER_DATA.Command = 4 THEN
+	MODBUS.REGULATOR_MANAGER_DATA.Command:= ReadBindingFile('pid_binding.txt');//('/mnt/user/codesys/usb0/pid_binding.txt');
+END_IF
+
+file_header:= CONCAT(FILE_HEADER_UNITE, 'ObjectNumber$09ItfBinding$09ObjectBinding$09BitBinding$0A');
+//Сохранение настроек в файл
+IF MODBUS.REGULATOR_MANAGER_DATA.Command = 5 THEN
+	IF SaveBindingFile('pid_binding.txt', file_header)THEN//('/mnt/user/codesys/usb0/di_binding.txt');
+		MODBUS.REGULATOR_MANAGER_DATA.Command:= 6;//Успех
+	END_IF
+END_IF
+
+//Чтение настроек ПИД из файла
+IF MODBUS.REGULATOR_SETTINGS_DATA.Command = 4 THEN
+//('/mnt/user/codesys/usb0/pid_settings.txt');
+	MODBUS.REGULATOR_SETTINGS_DATA.Command:= ReadPidFile('pid_settings.txt');//
+END_IF
+
+file_header:= CONCAT(FILE_HEADER_UNITE, 'ObjectNumber$09SP$09Noise$09Kp$09Kd$09Td$09PauseMax$09MinWork$09MaxWork$09eNegative$09ePositive$09Ks1$09Ks2$09KdSteam$09Luft$09PauseMin$0A');
+//Сохраняем настройки ПИД в файл
+IF MODBUS.REGULATOR_SETTINGS_DATA.Command = 5 THEN
+	IF SavePidFile('pid_settings.txt', file_header) THEN
+		MODBUS.REGULATOR_SETTINGS_DATA.Command:= 6;
+	END_IF
+END_IF

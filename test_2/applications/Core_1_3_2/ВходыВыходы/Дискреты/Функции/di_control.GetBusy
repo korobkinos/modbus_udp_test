@@ -1,0 +1,28 @@
+﻿METHOD INTERNAL (*PRIVATE*) GetBusy : WORD	//Метод возвращает номер DI, если бит State уже занят c этого вх
+//Так же возвращает номер DI где не верные настройки (не сущ. интерфейс например, или объект интерфейса)
+VAR_INPUT
+	digital_binding_data	:	DigitalBindingData;
+END_VAR
+VAR
+	counter				:	WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+//Ищем DI в котором уже есть такие настройки
+IF digital_binding_data.ItfNumber = 0 OR digital_binding_data.ObjectNumber = 0 THEN
+	RETURN;
+END_IF
+IF _digital_binding <> 0 THEN
+	FOR counter:= 1 TO GetObjectCount() DO
+		IF _digital_binding^.Number[counter].ItfNumber = 0 OR _digital_binding^.Number[counter].ObjectNumber = 0 THEN
+			CONTINUE;
+		END_IF
+		IF	_digital_binding^.Number[counter].BitNumber = digital_binding_data.BitNumber AND
+			_digital_binding^.Number[counter].ItfNumber = digital_binding_data.ItfNumber AND
+			_digital_binding^.Number[counter].ObjectNumber = digital_binding_data.ObjectNumber THEN
+			GetBusy:= counter;
+			EXIT;
+		END_IF
+	END_FOR
+END_IF

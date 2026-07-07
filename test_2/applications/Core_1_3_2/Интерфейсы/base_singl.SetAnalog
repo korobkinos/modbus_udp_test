@@ -1,0 +1,16 @@
+﻿METHOD SetAnalog : BOOL
+VAR_INPUT
+	(*Номер аналога*)
+	AnalogNumber	: WORD;
+	(*Значение аналога*)
+	Value	: AiChData;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF _AnalogData <> 0 THEN
+	IF AnalogNumber > 0 AND AnalogNumber <= OBJECT_ANALOG_QUANTITY THEN
+		_AnalogData^.Number[AnalogNumber]:= Value;
+		SetAnalog:= TRUE;
+	END_IF
+END_IF

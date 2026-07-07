@@ -1,0 +1,7 @@
+﻿TYPE ProtectData :	//
+STRUCT
+	Sensor				:	ARRAY[1..3] OF ProtectBindingData;
+	Delay				:	WORD;
+	
+END_STRUCT
+END_TYPE

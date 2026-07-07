@@ -1,0 +1,586 @@
+﻿(*
+  Функциональный блок широковещательной UDP-передачи произвольного payload.
+  Использует библиотеку Net Base Services (NBS).
+  Источник данных задается через pPayloadData + PayloadSizeBytes.
+  Данные автоматически разбиваются на UDP-пакеты по ограничению размера.
+*)
+{attribute 'no_assign'}
+FUNCTION_BLOCK FB_UdpWordBroadcast
+VAR_INPUT
+    Enable      : BOOL;          (* Включение FB *)
+    Signature   : DWORD;         (* Сигнатура протокола в заголовке пакета *)
+    LocalIp     : STRING(255);   (* Локальный IP-адрес *)
+    BroadcastIp : ARRAY[1..4] OF STRING(16); (* IP-адреса назначения *)
+    LocalPort   : UINT;          (* Локальный порт *)
+    RemotePort  : UINT;          (* Удаленный порт *)
+    MaxPacketBytesLimit : UDINT; (* Ограничение размера UDP-пакета в байтах (0 = теоретический максимум 65507) *)
+    Period      : TIME;          (* Период запуска полного цикла передачи *)
+    StartSend   : BOOL;          (* Ручной запуск полного цикла передачи *)
+    PacketType  : WORD := 1;     (* Тип пакета в заголовке *)
+    Version     : WORD := 1;     (* Версия протокола в заголовке *)
+    PayloadEndianness : WORD := 0;    (* 0=little, 1=swap bytes in WORD *)
+    InterPacketDelay : TIME := T#0MS; (* Пауза между пакетами внутри цикла *)
+    pPayloadData      : POINTER TO BYTE := 0; (* Указатель на структуру/буфер для отправки *)
+    PayloadSizeBytes  : UDINT := 0;           (* Размер структуры/буфера в байтах *)
+END_VAR
+VAR_OUTPUT
+    Active        : BOOL;        (* FB активен *)
+    Busy          : BOOL;        (* Идет передача цикла *)
+    Error         : BOOL;        (* Ошибка *)
+    ErrorId       : NBS.ERROR;   (* Код ошибки *)
+    SequenceId    : UDINT;       (* Текущий номер цикла передачи *)
+    PacketIndex   : WORD;        (* Индекс текущего отправляемого пакета *)
+    PacketCount   : WORD;        (* Всего отправок в текущем цикле с учетом активных IP *)
+    SourceDataWords : UDINT;     (* Размер payload в WORD (округление вверх по байтам) *)
+    EffectiveDataStartIndex : UDINT; (* Всегда 0 в payload-режиме *)
+    EffectiveDataEndIndex   : UDINT; (* Последний WORD payload *)
+    EffectiveDataWords      : UDINT; (* Количество WORD payload *)
+    SendDoneCount : UDINT;       (* Счетчик успешно отправленных пакетов всего *)
+    LastWordIndex : UDINT;       (* Индекс первого WORD в последнем отправленном пакете *)
+    LastWordCount : WORD;        (* Количество WORD в последнем отправленном пакете *)
+    LastCycleTimeMs : WORD;      (* Время предыдущего успешного цикла отправки, мс *)
+    CycleDone     : BOOL;        (* Флаг завершения полного цикла (на 1 цикл) *)
+
+    (* Диагностика *)
+    DiagState                : UINT;       (* Текущее состояние автомата *)
+    DiagErrorSource          : UINT;       (* Источник ошибки: 0-none,1-localIP,2-remoteIP,3-localIP=0.0.0.0,4-peer,5-invalid payload ptr/size,7-size>limit,8-send,9-maxPacketCalc,10-sendLen>udpMax *)
+    DiagPeerEnable           : BOOL;       (* Разрешение запуска peer *)
+    DiagPeerActive           : BOOL;       (* Состояние peer *)
+    DiagPeerError            : BOOL;       (* Ошибка peer *)
+    DiagPeerErrorId          : NBS.ERROR;  (* Код ошибки peer *)
+    DiagSendExecute          : BOOL;       (* Вызов peer.Send в текущем цикле *)
+    DiagSendBusy             : BOOL;       (* Не используется (FALSE) *)
+    DiagSendError            : BOOL;       (* Ошибка отправки peer.Send *)
+    DiagSendErrorId          : NBS.ERROR;  (* Код ошибки peer.Send *)
+    DiagSendCount            : UDINT;      (* Кол-во реально отправленных байт *)
+    DiagSendLength           : UDINT;      (* Требуемый размер отправки *)
+    DiagWordsPerPacketLimit  : UINT;       (* Текущий лимит WORD в одном UDP-пакете *)
+    DiagEffectivePacketBytesLimit : UDINT; (* Текущий лимит UDP-пакета в байтах с учетом ограничения MaxPacketBytesLimit *)
+    DiagLocalAddrInitError   : NBS.ERROR;  (* Результат localAddr.SetInitialValue *)
+    DiagRemoteAddrInitError  : NBS.ERROR;  (* Результат remoteAddr.SetInitialValue *)
+END_VAR
+VAR
+    (* Константы *)
+    MAX_PACKET_BYTES         : UDINT := UDINT#65507;  (* Максимальный полезный размер UDP datagram *)
+    SAFE_MTU_PACKET_BYTES    : UDINT := UDINT#1472;   (* Безопасный размер UDP-пакета без фрагментации в сети MTU 1500 *)
+    MAX_PAYLOAD_WORDS_BUFFER : UINT  := UINT#32753;   (* Размер буфера payload в WORD *)
+
+    (* Компоненты NBS *)
+    udpPeer     : NBS.UDP_Peer;
+    remoteAddr : ARRAY[1..4] OF NBS.IPv4Address;
+    localAddr   : NBS.IPv4Address;
+    localAddrInitError  : NBS.ERROR;
+    remoteAddrInitError : ARRAY[1..4] OF NBS.ERROR;
+    peerEnable : BOOL;
+    targetEnabled : ARRAY[1..4] OF BOOL;
+    targetIndex : UINT;
+    targetScan : UINT;
+    activeTargetCount : WORD;
+
+    (* Состояние конечного автомата *)
+    state       : UINT;
+
+    (* Внутренние переменные *)
+    timer       : TON;
+    interPacketTimer : TON;
+    cycleTimer  : TON;
+    startTrig   : R_TRIG;
+    cycleStart  : BOOL;
+    cycleTimerEnable : BOOL;
+
+    (* Параметры текущего цикла *)
+    totalPackets      : WORD;
+    currentPacket     : WORD;
+    currentSeqId      : UDINT;
+    remainingWords    : UDINT;
+    srcOffsetWords    : UDINT;
+    srcOffsetBytes    : UDINT;
+    selectedStartIndex : UDINT;
+    selectedEndIndex   : UDINT;
+    selectedDataWords  : UDINT;
+    selectedDataBytes  : UDINT;
+    maxPayloadBytesByUdp : UDINT;
+    maxWordsByUdp        : UINT;
+    effectiveWordsPerPacket : UINT;
+    effectiveMaxPacketBytes : UDINT;
+    requestedPacketBytesForRange : UDINT;
+    totalSendPackets : UDINT;
+    cycleElapsedMs : UDINT;
+
+    (* Буфер пакета *)
+    packetHeader : ST_UdpPacketHeader;
+    packetPayload : ARRAY[0..32752] OF WORD;
+    packetTxBuffer : ARRAY[0..65506] OF BYTE;
+    sendLen      : UDINT;
+    txPayloadSizeBytes : UDINT;
+
+    (* Вспомогательные переменные *)
+    wordsInPacket : WORD;
+    sendResult    : NBS.ERROR;
+    sendCount     : UDINT;
+    iByte         : UDINT;
+    pSrcByte      : POINTER TO BYTE;
+    pDstByte      : POINTER TO BYTE;
+    pDstDataByte  : POINTER TO BYTE;
+    wordsInPacketUdint : UDINT;
+    bytesInPacket : UDINT;
+    byteInWordIndex : UDINT;
+    dstPayloadByteIndex : UDINT;
+END_VAR
+
+// ------------------------------------------------------------
+
+// === IMPLEMENTATION ===
+
+startTrig(CLK := StartSend);
+
+// ------------------------------------------------------------
+IF NOT Enable THEN
+    Active := FALSE;
+    Busy := FALSE;
+    Error := FALSE;
+    ErrorId := NBS.ERROR.NO_ERROR;
+    CycleDone := FALSE;
+    state := 0;
+    timer(IN := FALSE);
+    interPacketTimer(IN := FALSE);
+    cycleTimer(IN := FALSE);
+    udpPeer(xEnable := FALSE);
+    cycleStart := FALSE;
+    cycleTimerEnable := FALSE;
+    targetIndex := 1;
+    activeTargetCount := 0;
+
+    SourceDataWords := 0;
+    EffectiveDataStartIndex := 0;
+    EffectiveDataEndIndex := 0;
+    EffectiveDataWords := 0;
+
+    DiagState := 0;
+    DiagErrorSource := 0;
+    DiagPeerEnable := FALSE;
+    DiagPeerActive := FALSE;
+    DiagPeerError := FALSE;
+    DiagPeerErrorId := NBS.ERROR.NO_ERROR;
+    DiagSendExecute := FALSE;
+    DiagSendBusy := FALSE;
+    DiagSendError := FALSE;
+    DiagSendErrorId := NBS.ERROR.NO_ERROR;
+    DiagSendCount := 0;
+    DiagSendLength := 0;
+    DiagWordsPerPacketLimit := 0;
+    DiagEffectivePacketBytesLimit := 0;
+    DiagLocalAddrInitError := NBS.ERROR.NO_ERROR;
+    DiagRemoteAddrInitError := NBS.ERROR.NO_ERROR;
+    RETURN;
+END_IF
+
+Active := TRUE;
+
+// ------------------------------------------------------------
+timer(IN := TRUE, PT := Period);
+IF timer.Q THEN
+    cycleStart := TRUE;
+    timer(IN := FALSE);
+END_IF
+
+IF state <> 40 THEN
+    interPacketTimer(IN := FALSE);
+END_IF
+
+(* Таймер измеряет длительность успешного цикла отправки до последнего IP. *)
+cycleTimer(IN := cycleTimerEnable, PT := T#65535MS);
+
+// ------------------------------------------------------------
+IF (cycleStart OR startTrig.Q) AND (state = 0) AND (NOT Busy) THEN
+    (* Новый цикл начинается только из Idle: по периоду или ручному StartSend. *)
+    cycleStart := FALSE;
+    cycleTimerEnable := TRUE;
+    state := 10;
+END_IF
+
+// ------------------------------------------------------------
+localAddrInitError := localAddr.SetInitialValue(LocalIp);
+
+(* Считаем только активные адреса. Дубликаты уже очищены при применении Modbus IP. *)
+activeTargetCount := WORD#0;
+FOR targetScan := 1 TO 4 DO
+    targetEnabled[targetScan] := (BroadcastIp[targetScan] <> '') AND (BroadcastIp[targetScan] <> '0.0.0.0');
+    remoteAddrInitError[targetScan] := NBS.ERROR.NO_ERROR;
+
+    IF targetEnabled[targetScan] THEN
+        activeTargetCount := activeTargetCount + WORD#1;
+        remoteAddrInitError[targetScan] := remoteAddr[targetScan].SetInitialValue(BroadcastIp[targetScan]);
+    END_IF
+END_FOR
+
+peerEnable :=
+    (localAddrInitError = NBS.ERROR.NO_ERROR) AND
+    (LocalIp <> '0.0.0.0');
+
+udpPeer(
+    xEnable      := peerEnable,
+    itfIPAddress := localAddr,
+    uiPort       := LocalPort
+);
+
+DiagState := state;
+DiagPeerEnable := peerEnable;
+DiagPeerActive := udpPeer.xActive;
+DiagPeerError := udpPeer.xError;
+DiagPeerErrorId := udpPeer.eErrorID;
+DiagWordsPerPacketLimit := effectiveWordsPerPacket;
+DiagEffectivePacketBytesLimit := effectiveMaxPacketBytes;
+DiagLocalAddrInitError := localAddrInitError;
+DiagRemoteAddrInitError := NBS.ERROR.NO_ERROR;
+FOR targetScan := 1 TO 4 DO
+    IF (DiagRemoteAddrInitError = NBS.ERROR.NO_ERROR) AND
+       (remoteAddrInitError[targetScan] <> NBS.ERROR.NO_ERROR) THEN
+        DiagRemoteAddrInitError := remoteAddrInitError[targetScan];
+    END_IF
+END_FOR
+
+// ------------------------------------------------------------
+CASE state OF
+
+    0:  (* Idle *)
+        Busy := FALSE;
+        CycleDone := FALSE;
+
+    10: (* PrepareCycle *)
+        Busy := TRUE;
+        Error := FALSE;
+        ErrorId := NBS.ERROR.NO_ERROR;
+        DiagErrorSource := 0;
+
+        IF localAddrInitError <> NBS.ERROR.NO_ERROR THEN
+            Error := TRUE;
+            ErrorId := localAddrInitError;
+            DiagErrorSource := 1;
+            state := 100;
+            RETURN;
+        END_IF
+
+        IF activeTargetCount = WORD#0 THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_PARAMETER;
+            DiagErrorSource := 2;
+            state := 100;
+            RETURN;
+        END_IF
+
+        FOR targetScan := 1 TO 4 DO
+            IF targetEnabled[targetScan] AND (remoteAddrInitError[targetScan] <> NBS.ERROR.NO_ERROR) THEN
+                Error := TRUE;
+                ErrorId := remoteAddrInitError[targetScan];
+                DiagErrorSource := 2;
+                state := 100;
+                RETURN;
+            END_IF
+        END_FOR
+
+        IF LocalIp = '0.0.0.0' THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_PARAMETER;
+            DiagErrorSource := 3;
+            state := 100;
+            RETURN;
+        END_IF
+
+        IF udpPeer.xError AND (NOT udpPeer.xActive) THEN
+            Error := TRUE;
+            ErrorId := udpPeer.eErrorID;
+            DiagErrorSource := 4;
+            state := 100;
+            RETURN;
+        END_IF
+
+        IF NOT udpPeer.xActive THEN
+            RETURN;
+        END_IF
+
+        IF (pPayloadData = 0) OR (PayloadSizeBytes = 0) THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_PARAMETER;
+            DiagErrorSource := 5;
+            state := 100;
+            RETURN;
+        END_IF
+
+        selectedStartIndex := 0;
+        selectedDataBytes := PayloadSizeBytes;
+        selectedDataWords := (selectedDataBytes + UDINT#1) / UDINT#2;
+
+        IF selectedDataWords = 0 THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_PARAMETER;
+            DiagErrorSource := 5;
+            state := 100;
+            RETURN;
+        END_IF
+
+        selectedEndIndex := selectedDataWords - UDINT#1;
+
+        SourceDataWords := selectedDataWords;
+        EffectiveDataStartIndex := selectedStartIndex;
+        EffectiveDataEndIndex := selectedEndIndex;
+        EffectiveDataWords := selectedDataWords;
+
+        requestedPacketBytesForRange := SIZEOF(packetHeader) + selectedDataBytes;
+
+        (* Лимит пакета берем из настроек, но не выше UDP-максимума. *)
+        effectiveMaxPacketBytes := MAX_PACKET_BYTES;
+        IF (MaxPacketBytesLimit > UDINT#0) AND (MaxPacketBytesLimit < effectiveMaxPacketBytes) THEN
+            effectiveMaxPacketBytes := MaxPacketBytesLimit;
+        END_IF
+
+        (* Если выбранный диапазон целиком помещается в безопасный пакет до 1472 байт,
+           не режем его на части из-за слишком малого пользовательского лимита. *)
+        IF requestedPacketBytesForRange <= SAFE_MTU_PACKET_BYTES THEN
+            IF effectiveMaxPacketBytes < requestedPacketBytesForRange THEN
+                effectiveMaxPacketBytes := requestedPacketBytesForRange;
+            END_IF
+        END_IF
+        DiagEffectivePacketBytesLimit := effectiveMaxPacketBytes;
+
+        IF SIZEOF(packetHeader) >= effectiveMaxPacketBytes THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_CONFIGURATION;
+            DiagErrorSource := 9;
+            state := 100;
+            RETURN;
+        END_IF
+
+        maxPayloadBytesByUdp := effectiveMaxPacketBytes - SIZEOF(packetHeader);
+        IF maxPayloadBytesByUdp > (UINT_TO_UDINT(MAX_PAYLOAD_WORDS_BUFFER) * UDINT#2) THEN
+            maxPayloadBytesByUdp := UINT_TO_UDINT(MAX_PAYLOAD_WORDS_BUFFER) * UDINT#2;
+        END_IF
+        maxWordsByUdp := UDINT_TO_UINT((maxPayloadBytesByUdp + UDINT#1) / UDINT#2);
+
+        IF maxWordsByUdp > MAX_PAYLOAD_WORDS_BUFFER THEN
+            effectiveWordsPerPacket := MAX_PAYLOAD_WORDS_BUFFER;
+        ELSE
+            effectiveWordsPerPacket := maxWordsByUdp;
+        END_IF
+        DiagWordsPerPacketLimit := effectiveWordsPerPacket;
+
+        IF effectiveWordsPerPacket = 0 THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_CONFIGURATION;
+            DiagErrorSource := 9;
+            state := 100;
+            RETURN;
+        END_IF
+
+        IF selectedDataBytes > (maxPayloadBytesByUdp * UDINT#65535) THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_PARAMETER;
+            DiagErrorSource := 7;
+            state := 100;
+            RETURN;
+        END_IF
+
+        currentSeqId := currentSeqId + 1;
+        SequenceId := currentSeqId;
+
+        totalPackets := UDINT_TO_WORD(
+            (selectedDataBytes + maxPayloadBytesByUdp - UDINT#1) / maxPayloadBytesByUdp
+        );
+        totalSendPackets := WORD_TO_UDINT(totalPackets) * WORD_TO_UDINT(activeTargetCount);
+        IF totalSendPackets > UDINT#65535 THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_PARAMETER;
+            DiagErrorSource := 7;
+            state := 100;
+            RETURN;
+        END_IF
+        PacketCount := UDINT_TO_WORD(totalSendPackets);
+
+        currentPacket := 0;
+        PacketIndex := 0;
+        srcOffsetWords := 0;
+        srcOffsetBytes := 0;
+        remainingWords := selectedDataWords;
+        state := 20;
+
+    20: (* PreparePacket *)
+        IF srcOffsetBytes >= selectedDataBytes THEN
+            state := 60;
+            RETURN;
+        END_IF
+
+        bytesInPacket := selectedDataBytes - srcOffsetBytes;
+        IF bytesInPacket > maxPayloadBytesByUdp THEN
+            bytesInPacket := maxPayloadBytesByUdp;
+        END_IF
+        IF (bytesInPacket > UDINT#1) AND ((bytesInPacket MOD UDINT#2) <> 0) AND ((srcOffsetBytes + bytesInPacket) < selectedDataBytes) THEN
+            bytesInPacket := bytesInPacket - UDINT#1;
+        END_IF
+        remainingWords := (selectedDataBytes - srcOffsetBytes + UDINT#1) / UDINT#2;
+        wordsInPacketUdint := (bytesInPacket + UDINT#1) / UDINT#2;
+        wordsInPacket := UDINT_TO_WORD(wordsInPacketUdint);
+
+        (* Заголовок описывает фрагмент payload внутри текущего цикла. *)
+        packetHeader.Signature        := Signature;
+        packetHeader.Version          := Version;
+        packetHeader.PacketType       := PacketType;
+        packetHeader.SequenceId       := currentSeqId;
+        packetHeader.PacketIndex      := currentPacket;
+        packetHeader.PacketCount      := totalPackets;
+        packetHeader.StartWordIndex   := selectedStartIndex + srcOffsetWords;
+        packetHeader.WordCount        := wordsInPacket;
+        packetHeader.PayloadSizeBytes := UDINT_TO_WORD(bytesInPacket);
+
+        (* Обнуляем payload в пределах фактического пакета (с учетом неполного последнего WORD). *)
+        pDstByte := ADR(packetPayload);
+        FOR iByte := 0 TO (wordsInPacketUdint * UDINT#2) - UDINT#1 DO
+            pDstByte^ := 0;
+            pDstByte := pDstByte + 1;
+        END_FOR
+
+        pSrcByte := pPayloadData + srcOffsetBytes;
+
+        pDstByte := ADR(packetPayload);
+        FOR iByte := 0 TO bytesInPacket - UDINT#1 DO
+            byteInWordIndex := iByte MOD UDINT#2;
+            dstPayloadByteIndex := iByte;
+
+            (* Для WORD-oriented получателя можно поменять местами байты внутри каждого WORD. *)
+            IF (PayloadEndianness = 1) AND ((byteInWordIndex = 1) OR ((byteInWordIndex = 0) AND ((iByte + UDINT#1) < bytesInPacket))) THEN
+                dstPayloadByteIndex := ((iByte / UDINT#2) * UDINT#2) + (UDINT#1 - byteInWordIndex);
+            END_IF
+
+            pDstDataByte := pDstByte + dstPayloadByteIndex;
+            pDstDataByte^ := pSrcByte^;
+            pSrcByte := pSrcByte + 1;
+        END_FOR
+
+        (* Прикладная checksum поля Header не используется.
+           UDP checksum рассчитывается сетевым стеком библиотеки. *)
+        packetHeader.Checksum := 0;
+
+        txPayloadSizeBytes := bytesInPacket;
+
+        (* Собираем непрерывный буфер [Header][Payload] для гарантированной отправки одним datagram *)
+        pSrcByte := ADR(packetHeader);
+        pDstByte := ADR(packetTxBuffer);
+        FOR iByte := 0 TO SIZEOF(packetHeader) - UDINT#1 DO
+            pDstByte^ := pSrcByte^;
+            pSrcByte := pSrcByte + 1;
+            pDstByte := pDstByte + 1;
+        END_FOR
+
+        pSrcByte := ADR(packetPayload);
+        FOR iByte := 0 TO txPayloadSizeBytes - UDINT#1 DO
+            pDstByte^ := pSrcByte^;
+            pSrcByte := pSrcByte + 1;
+            pDstByte := pDstByte + 1;
+        END_FOR
+
+        PacketIndex   := currentPacket;
+        LastWordIndex := selectedStartIndex + srcOffsetWords;
+        LastWordCount := wordsInPacket;
+        targetIndex := 1;
+        state := 30;
+
+    30: (* SendPacket *)
+        sendLen := SIZEOF(packetHeader) + txPayloadSizeBytes;
+        IF sendLen > effectiveMaxPacketBytes THEN
+            Error := TRUE;
+            ErrorId := NBS.ERROR.WRONG_CONFIGURATION;
+            DiagErrorSource := 10;
+            state := 100;
+            RETURN;
+        END_IF
+
+        (* Один и тот же пакет отправляется по всем активным адресам назначения. *)
+        WHILE targetIndex <= UINT#4 DO
+            IF targetEnabled[targetIndex] THEN
+                EXIT;
+            END_IF
+            targetIndex := targetIndex + UINT#1;
+        END_WHILE
+
+        IF targetIndex > UINT#4 THEN
+            IF ((srcOffsetBytes + bytesInPacket) < selectedDataBytes) AND (InterPacketDelay > T#0MS) THEN
+                state := 40;
+            ELSE
+                state := 50;
+            END_IF
+            RETURN;
+        END_IF
+
+        sendCount := 0;
+        sendResult := udpPeer.Send(
+            itfIPAddress := remoteAddr[targetIndex],
+            uiPort       := RemotePort,
+            pData        := ADR(packetTxBuffer),
+            udiSize      := sendLen,
+            udiCount     => sendCount
+        );
+
+        DiagSendExecute := TRUE;
+        DiagSendBusy := FALSE;
+        DiagSendCount := sendCount;
+        DiagSendLength := sendLen;
+
+        IF sendResult = NBS.ERROR.NO_ERROR THEN
+            DiagSendError := FALSE;
+            DiagSendErrorId := NBS.ERROR.NO_ERROR;
+            SendDoneCount := SendDoneCount + 1;
+            targetIndex := targetIndex + UINT#1;
+            state := 30;
+        ELSE
+            DiagSendError := TRUE;
+            DiagSendErrorId := sendResult;
+            Error   := TRUE;
+            ErrorId := sendResult;
+            DiagErrorSource := 8;
+            targetIndex := targetIndex + UINT#1;
+            state := 30;
+        END_IF
+
+    40: (* InterPacketDelay *)
+        interPacketTimer(IN := TRUE, PT := InterPacketDelay);
+        IF interPacketTimer.Q THEN
+            interPacketTimer(IN := FALSE);
+            state := 50;
+        END_IF
+
+    50: (* NextPacket *)
+        currentPacket := currentPacket + 1;
+        srcOffsetBytes := srcOffsetBytes + bytesInPacket;
+        srcOffsetWords := srcOffsetBytes / UDINT#2;
+        IF (srcOffsetBytes MOD UDINT#2) <> 0 THEN
+            srcOffsetWords := srcOffsetWords + UDINT#1;
+        END_IF
+
+        IF srcOffsetBytes < selectedDataBytes THEN
+            state := 20;
+        ELSE
+            remainingWords := 0;
+            state := 60;
+        END_IF
+
+    60: (* CycleDone *)
+        cycleElapsedMs := TIME_TO_UDINT(cycleTimer.ET);
+        IF cycleElapsedMs > UDINT#65535 THEN
+            LastCycleTimeMs := WORD#65535;
+        ELSE
+            LastCycleTimeMs := UDINT_TO_WORD(cycleElapsedMs);
+        END_IF
+        cycleTimerEnable := FALSE;
+        Busy := FALSE;
+        CycleDone := TRUE;
+        state := 0;
+
+    100: (* Error *)
+        cycleTimerEnable := FALSE;
+        Busy := FALSE;
+        DiagSendExecute := FALSE;
+        IF cycleStart OR startTrig.Q THEN
+            cycleStart := TRUE;
+            state := 0;
+        END_IF
+
+END_CASE

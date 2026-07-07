@@ -1,0 +1,21 @@
+﻿(*
+  Структура заголовка UDP-пакета для широковещательной передачи данных.
+  Все поля упакованы последовательно; при необходимости ручной упаковки
+  в BYTE-буфер нужно учитывать порядок байт (endianness).
+  В CODESYS структуры могут иметь выравнивание, поэтому принимающая сторона
+  должна учитывать фактический размер Header, либо перейти на ручную упаковку.
+*)
+TYPE ST_UdpPacketHeader :
+STRUCT
+    Signature        : DWORD := 16#534B4D41;  (* 'AMKS' *)
+    Version          : WORD  := 1;            (* Версия протокола *)
+    PacketType       : WORD  := 1;            (* 1 - data packet *)
+    SequenceId       : UDINT;                 (* Номер полного цикла передачи *)
+    PacketIndex      : WORD;                  (* Индекс текущего пакета, начиная с 0 *)
+    PacketCount      : WORD;                  (* Всего пакетов в цикле *)
+    StartWordIndex   : UDINT;                 (* Индекс первого WORD в исходном массиве *)
+    WordCount        : WORD;                  (* Сколько WORD лежит в этом пакете *)
+    PayloadSizeBytes : WORD;                  (* Размер полезных данных в байтах *)
+    Checksum         : WORD;                  (* Контрольная сумма по WORD payload *)
+END_STRUCT
+END_TYPE

@@ -1,0 +1,5 @@
+﻿TYPE ProtectManagerData EXTENDS CommandStructure :
+STRUCT
+	Settings			:	ProtectData;
+END_STRUCT
+END_TYPE

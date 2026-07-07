@@ -1,0 +1,36 @@
+﻿FUNCTION scale_singl : real
+VAR_INPUT
+	ai_value	:	REAL;	
+	ch_error	:	BOOL;			//Авария аналогового канала
+	settings	:	ScaleData;		//Настройки канала
+END_VAR
+VAR_OUTPUT
+	warning_min	:	BOOL;
+	warning_max	:	BOOL;
+	alarm_min	:	BOOL;
+	alarm_max	:	BOOL;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+//warning_min:=FALSE;		- У функции итак при вызове все входы/выходы обнулены!
+//warning_max:=FALSE;
+//alarm_min:=FALSE;
+//alarm_max:=FALSE;
+scale_singl:=	proportion		(	in:= ai_value,
+									xmin:= settings.value[min_value],
+									xmax:= settings.value[max_value],
+									ymin:= settings.value[min_scale],
+									ymax:= settings.value[max_scale]);
+IF  settings.value[min_warning] <> 0 THEN
+	warning_min:= (scale_singl < settings.value[min_warning]) OR ch_error;
+END_IF					
+IF  settings.value[max_warning] <> 0 THEN
+	warning_max:= (scale_singl > settings.value[max_warning]) OR ch_error;
+END_IF
+IF settings.value[min_alarm] <> 0 THEN
+	alarm_min:= (scale_singl < settings.value[min_alarm]) OR ch_error;
+END_IF
+IF settings.value[max_alarm] <> 0 THEN
+	alarm_max:= (scale_singl > settings.value[max_alarm]) OR ch_error;
+END_IF

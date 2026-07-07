@@ -1,0 +1,7 @@
+﻿METHOD SetRegulator : BOOL
+VAR_INPUT
+	ObjectNumber			:	WORD;			//Номер объекта
+	Value					:	PidTrendData;//PidLinkData;	//Значение аналога
+END_VAR
+
+// === IMPLEMENTATION ===

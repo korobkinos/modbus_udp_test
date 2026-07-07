@@ -1,0 +1,23 @@
+﻿METHOD SetPayload : BOOL
+(*
+  Привязывает произвольную структуру/буфер к каналу отправки.
+  Возвращает TRUE, если индекс канала корректный, указатель не нулевой и размер больше 0.
+*)
+VAR_INPUT
+    ChannelIndex : UINT;
+    pData : POINTER TO BYTE;
+    SizeBytes : UDINT;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+SetPayload := FALSE;
+
+IF ChannelIndex > CHANNEL_LAST THEN
+    RETURN;
+END_IF
+
+payload_ptr[ChannelIndex] := pData;
+payload_size_bytes[ChannelIndex] := SizeBytes;
+
+SetPayload := (pData <> 0) AND (SizeBytes > UDINT#0);

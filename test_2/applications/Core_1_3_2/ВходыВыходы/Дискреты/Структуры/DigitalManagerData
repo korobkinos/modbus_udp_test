@@ -1,0 +1,6 @@
+﻿TYPE DigitalManagerData EXTENDS CommandStructure :
+STRUCT
+	DuplicateNumber		:	WORD;	//Номер дублирования входа
+	BindingData			:	DigitalBindingData;
+END_STRUCT
+END_TYPE

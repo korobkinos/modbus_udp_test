@@ -1,0 +1,5 @@
+﻿TYPE ModulErrorBindingSettings :
+STRUCT
+	AinCh		:	ARRAY[1..2] OF WORD;	//в модуле: 1-AIN первый, 2-AIN последний 
+END_STRUCT
+END_TYPE

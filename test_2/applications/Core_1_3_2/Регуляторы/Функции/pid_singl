@@ -1,0 +1,312 @@
+﻿FUNCTION_BLOCK pid_singl EXTENDS base_singl
+VAR
+	state_local			:	PidStateUnion;
+	
+END_VAR
+VAR_INPUT
+	mode				:	BOOL;	//1-Инверсия выходов, 0-Нет инверсии
+	settings			:	POINTER TO PidData;
+	
+END_VAR
+VAR_OUTPUT
+	trend_data			:	PidTrendData;
+	//E_total				:	REAL;	//Суммарное разсогласование для индикации
+	//E_D					:	REAL;	//Разсогласование дифференциальное
+END_VAR
+VAR
+	analog_data			:	ObjectAnalogData;
+	regulator_data		:	PidTrendData;//PidLinkData;
+	up					:	BOOL;
+	down				:	BOOL;
+	up_out				:	BOOL;
+	down_out			:	BOOL;
+	
+	E_local				:	REAL;	//Суммарное разсогласование для регулятора
+	E_D					:	REAL;	//Разсогласование дифференциальное
+	scale				:	REAL;	//Разсогласование, в зависимости от его знака
+	t_impact			:	REAL;	//Время импульса воздействия
+	t_pause				:	REAL;	//Время паузы
+	E_P					:	REAL;	//Разсогласование пропорциональное
+	E_D_temp			:	REAL;	//Предыдущее дифференциальное разсогласование
+	E_D_steam_temp		:	REAL;	//Предыдущее дифференциальное разсогласование ПАР
+	E_D_steam			:	REAL;	//дифференциальное разсогласование ПАР
+	FINE_ADDER			:	REAL;	//Накопление точной подстройки
+	luft_up				:	REAL;
+	luft_down			:	REAL;
+	sensor_D			:	REAL;	//Датчик без учета зоны нечувствительности
+	D_continion			:	BOOL;	//Выполняется дифференцирование
+	luft_up_enable		:	BOOL;
+	luft_down_enable	:	BOOL;
+	up_r_trig			:	r_trig;
+	down_r_trig			:	r_trig;
+	impact_r_trig		:	r_trig;	//Триггер появления минимального импульса для запуска паузы
+	D_r_trig			:	r_trig;
+	D_f_trig			:	f_trig;
+	impact_f_trig		:	f_trig;	//Триггер окончания воздействия
+	up_f_trig			:	f_trig;
+	down_f_trig			:	f_trig;
+	ZONE_TOF			:	TOF;	//Пауза при выходе из зоны нечувствительности
+	D_tof				:	TOF;	//Время дифференцирования
+	PUSK_TOF			:	TOF;	//Время задержки для ожидания обратной связи ИМ
+	up_impuls			:	TP;
+	down_impuls			:	TP;
+	UP_EN				:	BOOL;
+	DOWN_EN				:	BOOL;
+	impact_UP			:	REAL;
+	impact_DOWN			:	REAL;
+	
+END_VAR
+
+VAR
+	noise				:	REAL;	//Зона не чувствительности (+/-)
+	SP					:	REAL;	//Уставка
+	Ks_1				:	REAL;	//Коэффициент датчика 1 (ВОДА)
+	Ks_2				:	REAL;	//Коэффициент датчика 2 (ПАР)
+	Kp					:	REAL;	//Коэффициент Пропорциональности
+	Kd					:	REAL;	//Коэффициент дифференцирования
+	T_pause_max			:	REAL;	//Максимальное время паузы (обратной связи ИМ)
+	Td					:	REAL;	//Время дифференцирования
+	min_work			:	REAL;	//Минимальное время импульса
+	max_work			:	REAL;	//Максимальное время импульса (
+	E_negative			:	REAL;	//Разсогласование - (Относительно SP)
+	E_positive			:	REAL;	//Разсогласование + (Относительно SP)
+	Kd_steam			:	REAL;	//Масштабатор скорости ПАР
+	luft				:	REAL;	//Время люфта ИМ
+	min_pause			:	REAL;	//минимальная пауза
+	
+	sensor				:	REAL;	//Сигнал датчика
+	sensor_1			:	REAL;	//Сигнал датчика 1 (ВОДА)
+	sensor_2			:	REAL;	//Сигнал датчика 2 (ПАР)
+	
+END_VAR
+
+VAR CONSTANT
+	set_SP			:WORD:=1;			//1-Задание для регулятора
+	set_noise		:WORD:=2;			//2-Зона нечувствительности
+	set_Kp			:WORD:=3;			//3-Коэффициент пропорциональности
+	set_Kd			:WORD:=4;			//4-Коэффициент дифференцирования
+	set_Td			:WORD:=5;			//5-Время дифференцирования
+	set_T_pause_max	:WORD:=6;			//6-Максимальная пауза
+	set_min_work	:WORD:=7;			//7-Минимальный импульс управления ИМ
+	set_max_work	:WORD:=8;			//8-Максимальный импульс управления ИМ
+	set_E_negative	:WORD:=9;			//9-Отрицательное разсогласование
+	set_E_positive	:WORD:=10;			//10-Положительное разсогласование
+	set_Ks_1		:WORD:=11;			//11-Коэффициент датчика 1 (три точки)
+	set_Ks_2		:WORD:=12;			//12-Коэффициент датчика 2 (три точки)
+	set_Kd_steam	:WORD:=13;			//13-Масштабатор скорости ПАР	
+	set_luft		:WORD:=14;			//14-Люфт
+	set_min_pause	:WORD:=15;			//15-минимальная пауза
+	
+	SetAuto			:WORD:=1;			//Установить в автомат
+	SetManual		:WORD:=2;			//Установить в ручное
+	
+END_VAR
+
+// === IMPLEMENTATION ===
+
+_State:= ADR(state_local);
+_AnalogData:= ADR(analog_data);
+_RegulatorData:= ADR(regulator_data);
+
+//Ограничение времени и коэффициентов
+IF settings <> 0 THEN
+Kp:= ABS(settings^.Value[set_Kp]);
+Kd:= ABS(settings^.Value[set_Kd]);
+Ks_1:= ABS(settings^.Value[set_Ks_1]);
+Ks_2:= ABS(settings^.Value[set_Ks_2]);
+Td:= ABS(settings^.Value[set_Td]);
+T_pause_max:= ABS(settings^.Value[set_T_pause_max]);
+noise:= ABS(settings^.Value[set_noise]);
+min_work:= ABS(settings^.Value[set_min_work]);
+max_work:= ABS(settings^.Value[set_max_work]);
+SP:= settings^.Value[set_SP];
+E_negative:= settings^.Value[set_E_negative];
+E_positive:= settings^.Value[set_E_positive];
+Kd_steam:= settings^.Value[set_Kd_steam];
+luft:= settings^.Value[set_luft];
+min_pause:= settings^.Value[set_min_pause];
+END_IF
+
+sensor:= AiMiddle(Sensor1:= analog_data.Number[1], Sensor2:= analog_data.Number[2], Error=> state_local.Flags.AnalogError);
+sensor_1:= analog_data.Number[3].Value;
+sensor_2:= analog_data.Number[4].Value;
+
+sensor_D:= sensor;
+
+//Определяем зону чувствительности
+IF sensor >= SP - noise AND sensor <= SP + noise THEN
+	sensor:= SP;
+END_IF
+
+//Пропорциональная часть-------------------------------------------------
+E_P:= (SP - sensor) * Kp;//Разница между Уставкой и входным сигналом
+
+//Дифференциальная часть---------------------------------------------------
+IF Td > 0 THEN
+	D_tof(	IN:=NOT D_continion,
+			PT:=REAL_TO_TIME(Td * 1000),
+			Q=>D_continion);
+ELSE
+	D_continion:= FALSE;
+	E_D:= 0;
+	E_D_steam:= 0;
+END_IF
+
+//Передний фронт
+D_r_trig(CLK:= D_continion);
+//Задний фронт
+D_f_trig(CLK:= D_continion);
+//Старое дифф. разсогласование
+IF D_r_trig.Q THEN
+	E_D_temp:= sensor_D;
+	E_D_steam_temp:= sensor_2;
+END_IF
+//старое дифф. разсогласование минус Новое СКОРОСТЬ изменения сигнала
+IF D_f_trig.Q THEN
+	E_D:= (E_D_temp - sensor_D) * Kd;//Раньше было наоборот и Д составляющая была в противосигнале с пропорциональной
+	E_D_steam:= (E_D_steam_temp - sensor_2) * Kd_steam;
+END_IF
+
+//Итоговое рассогласование--------------------------------------------------
+E_local:= E_P + FINE_ADDER + E_D + Ks_2 * sensor_2 - Ks_1 * sensor_1 - E_D_steam;
+
+//Ограничение Рассогласования
+IF E_local > E_positive THEN
+	E_local:= E_positive;
+END_IF
+
+IF E_local < E_negative THEN
+	E_local:= E_negative;
+END_IF
+
+//Выбор значения в зависимости от знака (полярности) разсогласования
+IF E_local < 0 THEN
+	scale:= ABS(E_negative);
+ELSE
+	scale:= ABS(E_positive);
+END_IF
+
+//Выводим на индикацию
+trend_data.Data[1]:= SP;
+trend_data.Data[2]:= sensor;
+trend_data.Data[3]:= E_local;
+//E_total:= E_local;
+trend_data.Data[6]:= E_D;
+trend_data.Data[7]:= sensor_1;
+trend_data.Data[8]:= sensor_2;
+
+IF NOT state_local.Flags.On THEN
+	E_local:= 0;
+END_IF
+
+IF luft_up_enable AND t_impact <> 0 THEN
+	luft_up:= luft;
+ELSE
+	luft_up:= 0;
+END_IF
+
+IF luft_down_enable AND t_impact <> 0  THEN
+	luft_down:= luft;
+ELSE
+	luft_down:= 0;
+END_IF
+
+//Вычисляем время воздействия (максимальное время импульса при максимальном разсогласовании
+t_impact:= Proportion(	X_sensor:= ABS(E_local),
+						X_min:= 0,
+						X_max:= scale,
+						Y_min:= 0,
+						Y_max:= max_work);
+
+//Сумматор рассогласования при E < E_min-------------------------------------------
+IF t_impact < MIN_WORK AND t_impact > 0 AND D_f_trig.Q THEN//По-этому делаем суммирование раз за время дифференцирования
+	FINE_ADDER:= FINE_ADDER + E_P * Kp;	//Здесь он моментально переполняется, так как ++ идёт в каждом цикле ПЛК!! Причём Ep суммируется без учёта коэффициента!!! Это может быть очень много!!!
+END_IF
+
+//Определение смены знака
+//sensor_low_r_trig(CLK:= E_P < 0);
+//sensor_high_r_trig(CLK:= E_P >= 0);
+
+//Если разсогласование меняет знак нужно сбрасывать таймеры! НУЖНО ЛИ ДИФФ СБРАСЫВАТЬ????????? ОН ПОЯВЛЯЕТСЯ В ПРОТИВОФАЗЕ
+///IF SP = sensor OR sensor_low_r_trig.q OR sensor_high_r_trig.Q THEN
+	///t_impact:=0;
+	//up_impuls(IN:=FALSE,PT:=T#0S,Q=>up);
+	//down_impuls(IN:=FALSE,PT:=T#0S,Q=>down);
+///END_IF
+
+//Триггер появления минимального импульса для запуска "нулевой" паузы паузы
+impact_r_trig(CLK:= t_impact >= MIN_WORK);
+
+//Считаем паузу относительно импульса (При минимальном импульсе максимальная пауза и наоборот)
+t_pause:= Proportion(		X_sensor:= t_impact,
+							X_min:= min_work,
+							X_max:= max_work,
+							Y_min:= T_pause_max,//Может Кт max обратно вернуть??
+							Y_max:= min_pause);//Здесь Td не должно быть, иначе минимальная пауза = Td, а нужно, чтоб она 0 была возможность?
+
+//Пауза при выходе из зоны нечувствительности???
+ZONE_TOF(IN:= impact_r_trig.Q, PT:= REAL_TO_TIME(min_pause * 1000));
+
+//IF ZONE_TOF.Q THEN
+//	t_pause:= 0;??
+//END_IF
+
+//Условие импульса БОЛЬШЕ
+UP_EN:= E_local > 0 AND t_impact >= MIN_WORK AND NOT PUSK_TOF.Q AND NOT ZONE_TOF.Q;
+//Условие импульса МЕНЬШЕ
+DOWN_EN:= E_local < 0 AND t_impact >= MIN_WORK AND NOT PUSK_TOF.Q AND NOT ZONE_TOF.Q;
+
+IF UP_EN THEN
+	impact_UP:= t_impact;
+	impact_DOWN:= 0;
+END_IF
+IF DOWN_EN THEN
+	impact_DOWN:= t_impact;
+	impact_UP:= 0;
+END_IF
+
+//Выдаем импульсы
+up_impuls(IN:= UP_EN, PT:= REAL_TO_TIME((impact_UP + luft_up) * 1000));
+down_impuls(IN:= DOWN_EN, PT:= REAL_TO_TIME((impact_DOWN + luft_down) * 1000));
+
+//Выдаем паузу (после импульса)
+PUSK_TOF(IN:= (UP OR DOWN), PT:= REAL_TO_TIME(t_pause * 1000));	
+
+UP:= up_impuls.Q AND NOT DOWN_EN;
+DOWN:= down_impuls.Q AND NOT UP_EN;
+
+up_r_trig(CLK:= UP);
+down_r_trig(CLK:= DOWN);
+up_f_trig(CLK:= UP);
+down_f_trig(CLK:= DOWN);
+
+IF up_r_trig.Q THEN
+ luft_down_enable:= TRUE;
+END_IF
+IF down_r_trig.Q THEN
+ luft_up_enable:= TRUE;
+END_IF
+
+IF up_f_trig.Q OR NOT state_local.Flags.On THEN
+ luft_up_enable:= FALSE;
+END_IF
+IF down_f_trig.Q OR NOT state_local.Flags.On THEN
+ luft_down_enable:= FALSE;
+END_IF
+
+//Стираем сумматор точной подстройки только после окончания воздействия
+impact_f_trig(CLK:= up OR down);
+IF impact_f_trig.Q THEN
+	FINE_ADDER:= 0;
+END_IF
+
+//Активация режима инверсии выходов
+up_out:= up XOR mode;//Когда mode = 1 up_out.0 = 1, up_out.1 = 0. Когда mode = 0, up_out.0 = 0, up_out.1 = 1
+down_out:= down XOR mode;
+
+//Выходные сигналы с учетом блокировки
+state_local.Flags.Up:= up_out AND NOT state_local.Flags.UpBlock;
+state_local.Flags.Down:= down_out AND NOT state_local.Flags.DownBlock;
+
+trend_data.Data[4]:= BIT_TO_REAL(state_local.Flags.Up);
+trend_data.Data[5]:= 0 - BIT_TO_REAL(state_local.Flags.Down);

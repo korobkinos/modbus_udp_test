@@ -1,0 +1,41 @@
+﻿FUNCTION_BLOCK up_down_pid_singl// ФБ преобразует сигналы больше/меньше в линейную величину
+VAR_INPUT
+	up		:	BOOL;
+	down	:	BOOL;
+	t_move	:	REAL:= 60;	//Время хода ИМ, sec
+	Td		:	REAL:= 0.01;
+	min_lim :	REAL:= 0;
+	max_lim :	REAL:= 100;
+END_VAR
+VAR_IN_OUT
+	E		:	REAL;	//min_lim - max_lim
+END_VAR
+VAR
+	D_tof	:	tof;
+	D_r_trig:	r_trig;
+	step	:	REAL;	//Шаг приращения
+END_VAR
+
+// === IMPLEMENTATION ===
+
+//Шаг приращения
+step:= (max_lim - min_lim) / (t_move / Td);
+
+//Генератор импульсов
+D_tof(	IN:=NOT D_tof.Q,
+		PT:= REAL_TO_TIME(Td * 1000));
+
+//Передний фронт
+D_r_trig(CLK:= D_tof.Q);
+
+//Приращение
+IF up AND NOT down AND D_r_trig.Q THEN
+	E:= E + step;
+	IF E > max_lim THEN E:= max_lim; END_IF
+END_IF
+
+//Инкремент
+IF down AND NOT up AND D_r_trig.Q THEN
+	E:= E - step;
+	IF E < min_lim THEN E:= min_lim; END_IF
+END_IF

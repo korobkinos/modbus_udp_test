@@ -1,0 +1,11 @@
+﻿TYPE ArmatureData :
+STRUCT
+	OffTime			:	WORD;		//Время безусловного отключения
+	PullTime		:	WORD;		//Время дожима
+	WaitTime		:	WORD;		//Время ожидания для ошибки
+	BlockMode		:	WORD;		//0-Блокировка открытия, 1-Блокировка закрытия
+	//OneState		:	WORD;		//0-Клапан с одним выходом (вкл/выкл), 1-Задвижка
+	//OffTime		:	WORD;
+	
+END_STRUCT
+END_TYPE

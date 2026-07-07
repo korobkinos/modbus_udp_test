@@ -1,0 +1,13 @@
+﻿METHOD (*ABSTRACT*) SetCommand : BOOL
+VAR_INPUT
+	Command	: CommandStructure;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+IF command.SelectedNumber > 0 AND command.SelectedNumber <= GetObjectCount() AND command.Command > 0 THEN
+	IF _object_itf[command.SelectedNumber] <> 0 THEN
+		_object_itf[command.SelectedNumber].SetCommand(command.Command);
+		SetCommand:= TRUE;
+	END_IF
+END_IF

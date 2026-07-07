@@ -1,0 +1,24 @@
+﻿METHOD OldPV : REAL
+VAR_INPUT
+    Td_Val : REAL; (* Какое окно времени считать *)
+END_VAR
+VAR_IN_OUT
+    BufArray : ARRAY[*] OF REAL; (* Передаем массив гибкой длины (или ARRAY[0..2999] OF REAL) *)
+END_VAR
+VAR
+    StepsBack : INT;
+    TailIdx : INT;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+(* В теле метода замените обращение к фиксированному буферу на BufArray: *)
+StepsBack := REAL_TO_INT(Td_Val / 0.1);
+IF StepsBack < 1 THEN StepsBack := 1; END_IF;
+
+TailIdx := HeadIdx - StepsBack;
+IF TailIdx < 0 THEN
+    TailIdx := TailIdx + 3000;
+END_IF;
+
+OldPV := BufArray[TailIdx];

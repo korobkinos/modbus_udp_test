@@ -1,0 +1,236 @@
+﻿FUNCTION_BLOCK AmPDBufferFilterNew
+VAR_INPUT
+    ON					: BOOL;                 (* Включение регулятора (отключение управления только) *)
+    SP					: REAL;                 (* Уставка уровня *)
+    SensorMain			: REAL;          		(* Сырой сигнал с датчика УРОВНЯ (с шумами) *)
+    SensorWater			: REAL;         		(* Датчик расхода ВОДЫ *)
+    SensorSteam			: REAL;         		(* Датчик расхода ПАРА *)
+	DeadZone			: REAL;            		(* Зона нечувствительности по уровню *)
+    WorkeZone			: REAL;           		(* Ширина половины рабочего коридора от уставки. В крайних точках будут 100% рассогласование*)
+    MinPulse			: REAL;            		(* Минимальная длительность импульса, сек *)
+    MaxPulse			: REAL;            		(* Максимальная длительность импульса, сек *)
+    PulsePeriod			: REAL;         		(* Период ШИМ-модуляции, сек *)
+	
+    tPLC				: REAL := 0.02;			(* Время цикла ПЛК, сек (в нашем случае 0.02 = 20 мс) *)
+	
+	(* Коэффициенты основного контура *)
+    Kp					: REAL;                 (* Пропорциональный коэффициент уровня *)
+    Kd					: REAL;                 (* Коэффициент дифференцирования уровня *)
+    Td					: REAL;                 (* Окно дифференцирования уровня, сек (0.1..300.0) *)
+    
+	Kp_Water			: REAL:= 1.0;       	(* Коэффициент расхода ВОДА (приведения расхода воды к пару)*)
+	K_Different			: REAL;             	(* Коэффициент разницы ПАР - ВОДА *)
+    Kd_Steam			: REAL;             	(* Коэффициент скорости ПАРА *)
+    Td_Steam			: REAL;           		(* Окно дифференцирования ПАРА, сек (0.1..300.0) *)
+    WorkeZoneSteam		: REAL;      			(* Ширина половины рабочего коридора от уставки. В крайних точках будут 100% рассогласование*)
+	
+	tReversePause		: REAL := 0.4;			(* Константа времени паузы реверса, сек (рекомендуется 0.4 сек = 400 мс) *)
+END_VAR
+
+VAR_OUTPUT
+    Out_More			: BOOL;            		(* Выход "БОЛЬШЕ" на пускатель МЭО *)
+    Out_Less			: BOOL;            		(* Выход "МЕНЬШЕ" на пускатель МЭО *)
+    E_total				: REAL;            		(* Суммарное рассогласование для индикации *)
+END_VAR
+
+VAR
+    (* Буферы медианных фильтров *)
+    MedBuf				: ARRAY[0..2] OF REAL;  (* Для Уровня *)
+    MedBufSteam			: ARRAY[0..2] OF REAL;  (* Для Пара *)
+    
+    (* Кольцевые буферы (3000 ячеек по 100 мс = 300 сек) *)
+    Buffer				: ARRAY[0..2999] OF REAL;(* Для Уровня *)
+    BufferSteam			: ARRAY[0..2999] OF REAL;(* Для Пара *)
+    HeadIdx				: INT := 0; 
+    
+    Timer100ms			: REAL := 0.0;           
+    TimerPeriod			: REAL := 0.0;          
+    
+    PV_Clean			: REAL;           		(* Очищенный уровень *)
+    Steam_Clean			: REAL;        			(* Очищенный расход пара *)
+    
+    Error				: REAL;              	(* Ошибка рассогласования по уровню *)
+    Delta_PV			: REAL := 0.0;    		(* Изменение уровня за окно Td *)
+    Delta_Steam			: REAL := 0.0; 			(* Изменение расхода пара за окно Td_Steam *)
+    
+    Error_Pct			: REAL;					//Ошибка в процентах от рабочей зоны
+    Delta_PV_Pct		: REAL;					(* Изменение уровня в процентах за окно Td *)
+    
+    (* Новые процентные составляющие по расходам *)
+    Flow_Error_Pct		: REAL;
+    Delta_Steam_Pct		: REAL;
+    
+    PD_Output			: REAL;           		(* Итоговое рассогласование *)
+    PulseWidth			: REAL; 
+    Active_More			: BOOL; 
+    Active_Less			: BOOL;
+	
+	(* Таймеры для отсчета паузы после отключения выходов *)
+    PauseTimer_More : REAL := 0.0; 
+    PauseTimer_Less : REAL := 0.0;
+    
+     
+ 
+END_VAR
+
+// === IMPLEMENTATION ===
+
+(* ========================================================================= *)
+(* 1. МЕДИАННЫЕ ФИЛЬТРЫ НА 3 ТОЧКИ (Выполняются каждый цикл 20 мс)            *)
+(* ========================================================================= *)
+(* Фильтр уровня *)
+MedBuf[2] := MedBuf[1];
+MedBuf[1] := MedBuf[0];
+MedBuf[0] := SensorMain;
+
+IF ((MedBuf[0] >= MedBuf[1]) AND (MedBuf[0] <= MedBuf[2])) OR ((MedBuf[0] <= MedBuf[1]) AND (MedBuf[0] >= MedBuf[2])) THEN
+    PV_Clean := MedBuf[0];
+ELSIF ((MedBuf[1] >= MedBuf[0]) AND (MedBuf[1] <= MedBuf[2])) OR ((MedBuf[1] <= MedBuf[0]) AND (MedBuf[1] >= MedBuf[2])) THEN
+    PV_Clean := MedBuf[1];
+ELSE
+    PV_Clean := MedBuf[2];
+END_IF;
+
+(* Фильтр расхода пара *)
+MedBufSteam[2] := MedBufSteam[1];
+MedBufSteam[1] := MedBufSteam[0];
+MedBufSteam[0] := SensorSteam;
+
+IF ((MedBufSteam[0] >= MedBufSteam[1]) AND (MedBufSteam[0] <= MedBufSteam[2])) OR ((MedBufSteam[0] <= MedBufSteam[1]) AND (MedBufSteam[0] >= MedBufSteam[2])) THEN
+    Steam_Clean := MedBufSteam[0];
+ELSIF ((MedBufSteam[1] >= MedBufSteam[0]) AND (MedBufSteam[1] <= MedBufSteam[2])) OR ((MedBufSteam[1] <= MedBufSteam[0]) AND (MedBufSteam[1] >= MedBufSteam[2])) THEN
+    Steam_Clean := MedBufSteam[1];
+ELSE
+    Steam_Clean := MedBufSteam[2];
+END_IF;
+
+(* ========================================================================= *)
+(* 2. ТАКТОВАНИЕ И ЗАПОЛНЕНИЕ КОЛЬЦЕВЫХ БУФЕРОВ (Каждые 100 мс)              *)
+(* ========================================================================= *)
+Timer100ms := Timer100ms + ABS(tPLC);
+IF Timer100ms >= 0.1 THEN
+    Timer100ms := Timer100ms - 0.1; 
+    
+    HeadIdx := HeadIdx + 1;
+    IF HeadIdx > 2999 THEN
+        HeadIdx := 0;
+    END_IF;
+    
+    (* Запись очищенных сигналов в свои независимые буферы *)
+    Buffer[HeadIdx] := PV_Clean;
+    BufferSteam[HeadIdx] := Steam_Clean;
+END_IF;
+
+(* ========================================================================= *)
+(* 3. РАСЧЕТ ОШИБОК И ИЗМЕНЕНИЙ ПАРАМЕТРОВ                                    *)
+(* ========================================================================= *)
+(* Защита от дурака по знакам *)
+tPLC:= ABS(tPLC); Kp:= ABS(Kp); Kd:= ABS(Kd); Td:= ABS(Td); K_Different:= ABS(K_Different);
+Kp_Water:= ABS(Kp_Water); Kd_Steam:= ABS(Kd_Steam); Td_Steam:= ABS(Td_Steam);
+DeadZone:= ABS(DeadZone); WorkeZone:= ABS(WorkeZone); WorkeZoneSteam:= ABS(WorkeZoneSteam);
+MinPulse:= ABS(MinPulse); MaxPulse:= ABS(MaxPulse); PulsePeriod:= ABS(PulsePeriod);
+
+IF Td < 0.1 THEN Td := 0.1; END_IF;
+IF Td > 300.0 THEN Td := 300.0; END_IF;
+
+IF Td_Steam < 0.1 THEN Td_Steam := 0.1; END_IF;
+IF Td_Steam > 300.0 THEN Td_Steam := 300.0; END_IF;
+
+(* Пропорциональная ошибка уровня *)
+Error := SP - PV_Clean;
+IF ABS(Error) < DeadZone THEN
+    Error := 0.0;
+END_IF;
+
+(* Дифференциальная ошибка уровня через вызов вашего метода *)
+Delta_PV := PV_Clean - OldPV(Td, Buffer); 
+
+(* Дифференциальная ошибка скорости ПАРА через аналогичный вызов *)
+Delta_Steam := Steam_Clean - OldPV(Td_Steam, BufferSteam);
+
+(* Перевод всех сигналов в проценты от ЖЕЛАЕМОГО КОРИДОРА уровня *)
+IF WorkeZone > 0.0 THEN
+    Error_Pct := (Error / WorkeZone) * 100.0;
+    Delta_PV_Pct := (Delta_PV / WorkeZone) * 100.0;
+ELSE
+    Error_Pct := 0.0; Delta_PV_Pct := 0.0; 
+END_IF;
+
+IF WorkeZoneSteam > 0.0 THEN
+	Flow_Error_Pct := ((Steam_Clean - (Kp_Water * SensorWater)) / WorkeZoneSteam) * 100.0;	(* Дисбаланс расходов (Пар - Вода) в процентах коридора пар/вода*)
+	Delta_Steam_Pct := (Delta_Steam / WorkeZoneSteam) * 100.0;	(* Скорость изменения пара в процентах коридора пар/вода*)
+ELSE
+	Flow_Error_Pct := 0.0; Delta_Steam_Pct := 0.0;
+END_IF
+
+(* ========================================================================= *)
+(* 4. ФОРМИРОВАНИЕ СИГНАЛА И ИМПУЛЬСНЫЙ ВЫХОД (ШИМ)                          *)
+(* ========================================================================= *)
+(* Итоговый закон регулирования: Уровень + Баланс Расходов + Упреждение по скорости Пара *)
+(* Знак "+" перед расходами, т.к. если Пар > Вода или Пар резко растет -> надо открывать воду *)
+PD_Output := (Kp * Error_Pct) - (Kd * Delta_PV_Pct) + (K_Different * Flow_Error_Pct) + (Kd_Steam * Delta_Steam_Pct);
+
+(* Ограничение сигнала *)
+IF PD_Output > 100.0 THEN PD_Output := 100.0; END_IF;
+IF PD_Output < -100.0 THEN PD_Output := -100.0; END_IF;
+
+E_total := PD_Output / 100.0;
+
+IF NOT ON THEN
+    PD_Output := 0.0;
+END_IF;
+
+(* Логика ШИМ (тактование периода) *)
+TimerPeriod := TimerPeriod + tPLC;
+IF TimerPeriod >= PulsePeriod OR TimerPeriod = tPLC THEN
+    IF TimerPeriod >= PulsePeriod THEN
+        TimerPeriod := TimerPeriod - PulsePeriod;
+    END_IF;
+    
+    PulseWidth := (ABS(PD_Output) / 100.0) * PulsePeriod;
+    
+    (* Фильтрация по минимальной длительности импульса *)
+    IF PulseWidth < MinPulse THEN PulseWidth := 0.0; END_IF;
+    IF PulseWidth > MaxPulse THEN PulseWidth := MaxPulse; END_IF;
+    
+    Active_More := (PD_Output > 0.0) AND (PulseWidth > 0.0);
+    Active_Less := (PD_Output < 0.0) AND (PulseWidth > 0.0);
+END_IF;
+
+
+
+(*
+(* Выдача физических сигналов на МЭО *)
+IF TimerPeriod < PulseWidth THEN
+    Out_More := Active_More; Out_Less := Active_Less;
+ELSE
+    Out_More := FALSE; Out_Less := FALSE;
+END_IF;
+*)
+
+(* Считаем время, прошедшее с момента отключения команд *)
+IF NOT Active_More THEN
+    PauseTimer_More := PauseTimer_More + tPLC;
+    IF PauseTimer_More > 10.0 THEN PauseTimer_More := 10.0; END_IF; (* Защита от переполнения *)
+ELSE
+    PauseTimer_More := 0.0; (* Пока команда активна, таймер сброшен *)
+END_IF;
+
+IF NOT Active_Less THEN
+    PauseTimer_Less := PauseTimer_Less + tPLC;
+    IF PauseTimer_Less > 10.0 THEN PauseTimer_Less := 10.0; END_IF;
+ELSE
+    PauseTimer_Less := 0.0;
+END_IF;
+
+(* Выдача физических сигналов на МЭО с учетом ШИМ-окна и паузы реверса *)
+IF TimerPeriod < PulseWidth THEN
+    (* БОЛЬШЕ включится только если ЛЕСС отключен уже как минимум tReversePause секунд *)
+    Out_More := Active_More AND (PauseTimer_Less >= tReversePause); 
+    
+    (* МЕНЬШЕ включится только если МОРЕ отключен уже как минимум tReversePause секунд *)
+    Out_Less := Active_Less AND (PauseTimer_More >= tReversePause);
+ELSE
+    Out_More := FALSE; 
+    Out_Less := FALSE;
+END_IF;

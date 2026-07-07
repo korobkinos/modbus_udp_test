@@ -1,0 +1,12 @@
+﻿FUNCTION_BLOCK ABSTRACT base_singl IMPLEMENTS ITF_OBJECT
+VAR_INPUT
+	_AnalogData		:	POINTER TO ObjectAnalogData;
+	_RegulatorData	:	POINTER TO PidTrendData;//PidLinkData;
+END_VAR
+VAR_OUTPUT
+END_VAR
+VAR
+	_State			:	POINTER TO ArmatureStateUnion;
+END_VAR
+
+// === IMPLEMENTATION ===

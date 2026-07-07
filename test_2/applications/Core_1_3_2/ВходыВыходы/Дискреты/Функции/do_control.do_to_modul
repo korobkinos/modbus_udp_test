@@ -1,0 +1,25 @@
+﻿METHOD do_to_modul	:	ARRAY[1..DO_MODUL_QUANTITY] OF DWORD;//Функция распределяет локальные дискреты по физическим модулям
+VAR_INPUT
+	do_local				:	ARRAY[1..DO_QUANTITY] OF BOOL;
+END_VAR
+VAR_OUTPUT
+				
+END_VAR
+VAR
+	modul_counter		:	WORD;
+	bit_counter			:	BYTE;
+	in_out_counter		:	WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+FOR modul_counter:= 1 TO DO_MODUL_QUANTITY DO
+	FOR bit_counter:= 0 TO 31 DO
+		in_out_counter:= in_out_counter + 1;
+		IF in_out_counter <= DO_QUANTITY THEN
+			do_to_modul[modul_counter]:= PutBit(do_to_modul[modul_counter], bit_counter, do_local[in_out_counter]);
+		ELSE
+			EXIT;
+		END_IF
+	END_FOR
+END_FOR

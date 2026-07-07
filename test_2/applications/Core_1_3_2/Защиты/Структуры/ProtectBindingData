@@ -1,0 +1,6 @@
+﻿TYPE ProtectBindingData EXTENDS DigitalBindingData :
+STRUCT
+	BitInverse		:	WORD;	//ИНверсия бита события
+	
+END_STRUCT
+END_TYPE

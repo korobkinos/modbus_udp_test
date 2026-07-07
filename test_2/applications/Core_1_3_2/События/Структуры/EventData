@@ -1,0 +1,16 @@
+﻿TYPE EventData :
+STRUCT
+	Value	:	ARRAY[1..11] OF WORD;
+	//1-ItfNumber			:	WORD;	//Номер интерфейса
+	//2-ObjectNumber		:	WORD;	//Номер Объекта
+	//3-Enable				:	WORD;	//Событие задействовано
+	//4-ItfDirector			:	WORD;	//Номер интерфейса директора
+	//5-ObjectDirector		:	WORD;	//Номер объекта директора
+	//6-ObjectDirectorBit	:	WORD;	//Номер бита управляющего объекта директора
+	//7-command				:	WORD;	//Действие на себе
+	//8-ton_time			:	WORD;	//Задержка действия
+	//9-invert_bit			:	WORD;	//4я настройка - по ON или по OFF
+	//10-and_event			:	WORD;	//Событие активируется только по AND с указанным событием 
+	//11 - reserv
+END_STRUCT
+END_TYPE

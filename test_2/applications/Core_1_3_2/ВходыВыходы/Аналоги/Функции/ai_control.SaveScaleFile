@@ -1,0 +1,49 @@
+﻿METHOD PRIVATE SaveScaleFile : BOOL
+VAR_INPUT
+    FilePath			:	STRING;	(* Путь к файлу, например 'di_binding.txt' , '/mnt/user/codesys/usb0/di_binding.txt'*)
+	Header				:	STRING(255);	//2 строки заголовка (служебная информация)
+END_VAR
+VAR_IN_OUT
+   
+END_VAR
+VAR
+	settings_data		:	ScaleData;
+	hFile				:	POINTER TO SysFile.RTS_IEC_HANDLE;//RTS_IEC_HANDLE;
+	sBuffer				:	STRING(255);
+	file_error			:	UDINT;
+	ObjectCounter		:	WORD;
+	settings_counter	:	WORD;
+END_VAR
+
+// === IMPLEMENTATION ===
+
+// 1. Открываем файл для записи (создаст новый или перезапишет старый)
+hFile := SysFile.SysFileOpen(FilePath, SysFile.AM_WRITE_PLUS, file_error);
+IF hFile = 0 OR hFile = 16#FFFFFFFF THEN
+    RETURN;
+END_IF
+
+// 2. Пишем заголовок
+SysFile.SysFileWrite (hFile, ADR(Header), INT_TO_DWORD(LEN(Header)), file_error);
+
+// 3. Пишем данные из массива
+	FOR ObjectCounter:= 1 TO GetObjectCount() DO
+		settings_data:= GetScale(ObjectCounter); //GetBinding(ObjectNumber:= ObjectCounter, Settings=> binding_data);// Тут не делаем "IF GetBinding(..." потому что нулевые настройки тоже надо сохранять в файл
+		// Формируем строку: значение1 + TAB + значение2 + TAB + значение3
+		sBuffer := '';
+		sBuffer := CONCAT(WORD_TO_STRING(ObjectCounter), '$09');
+		FOR settings_counter:= 1 TO 10 DO
+			sBuffer := CONCAT(sBuffer, REAL_TO_STRING(settings_data.Value[settings_counter]));
+			sBuffer := CONCAT(sBuffer, '$09');
+		END_FOR
+		sBuffer := CONCAT(sBuffer, '$0A');
+		// Пишем строку в файл
+		SysFile.SysFileWrite (hFile, ADR(sBuffer), INT_TO_DWORD(LEN(sBuffer)), file_error);
+	END_FOR;
+
+// 4. Закрываем файл
+SysFile.SysFileClose(hFile);
+
+// Успешное завершение
+SaveScaleFile := TRUE;
+RETURN;

@@ -1,0 +1,127 @@
+﻿FUNCTION_BLOCK ai_control EXTENDS di_control
+VAR
+	//ai_local			:	ARRAY [1..AI_QUANTITY] OF AiChData;
+
+	average				:	ARRAY [1..AI_QUANTITY] OF average_singl;
+	ai_error			:	ARRAY [1..AI_QUANTITY] OF BOOL;		//авария AI канала от аварии модуля
+	
+	ai_state			:	AnalogStateUnion;			//Временное хранилище
+
+	settings_tof		:	TOF;
+	settings_ton		:	TON;
+	
+	ai_modul_channel	:	ARRAY[1..AI_MODUL_QUANTITY] OF BYTE:=[8,8,8,8,8,8,8,8,8,8,8,8,8];	//Количество каналов в аналоговом модуле
+	
+END_VAR
+
+// === IMPLEMENTATION ===
+
+_objects_quantity:= AI_QUANTITY;
+_digital_binding:= ADR(SETTINGS.DATA.AI_DIGITAL_BINDING);
+
+//Устанавливаем ошибки каналов от ошибок модулей
+ai_error:= ModulErrorToChError(	modul_error:= ADR(MODBUS.AI_MODUL_ERROR), settings:= ADR(ai_modul_channel));
+
+//Обнуляем временное хранилище
+ai_state.DwValue:= 0;
+														
+FOR counter:= 1 TO AI_QUANTITY  DO
+	di_object[counter]();
+	_object_itf[counter]:= di_object[counter];
+	//Сглаживание
+	average[counter](in:= MODBUS.AI_MAIN[counter].VALUE, settings:= SETTINGS.DATA.AI_SETTINGS.Number[counter]);
+	//Вычисляем общую аварию аналогового канала
+	ai_state.Flags.Error:= ai_error[counter] OR (MODBUS.AI_MAIN[counter].STATUS AND 2#11100111) <> 0;	//0-Выброс, 1-верх.инж, 2-низ инж, 3-верх эл, 4-низ элек, 5-верх АЦП, 6-низ АЦП, 7-аппаратн.неиспр.
+	//Устанавливаем состояние
+	ai_state.Flags.Phys0:= MODBUS.AI_MAIN[counter].STATUS.0;
+	ai_state.Flags.Phys1:= MODBUS.AI_MAIN[counter].STATUS.1;
+	ai_state.Flags.Phys2:= MODBUS.AI_MAIN[counter].STATUS.2;
+	ai_state.Flags.Phys3:= MODBUS.AI_MAIN[counter].STATUS.3;
+	ai_state.Flags.Phys4:= MODBUS.AI_MAIN[counter].STATUS.4;
+	ai_state.Flags.Phys5:= MODBUS.AI_MAIN[counter].STATUS.5;
+	ai_state.Flags.Phys6:= MODBUS.AI_MAIN[counter].STATUS.6;
+	ai_state.Flags.Phys7:= MODBUS.AI_MAIN[counter].STATUS.7;
+	//Шкалирование входных сигналов
+	MODBUS.AI_MAIN_OPCUA[counter].Value:= scale_singl(	ai_value:= average[counter].out,
+											ch_error:= ai_state.Flags.Error,
+											settings:= SETTINGS.DATA.AI_SETTINGS.Number[counter],
+											warning_min=> ai_state.Flags.MinWarning,
+											warning_max=> ai_state.Flags.MaxWarning,
+											alarm_min=> ai_state.Flags.MinAlarm,
+											alarm_max=> ai_state.Flags.MaxAlarm);
+	
+		
+	//Устанавливаем State
+	di_object[counter].State:= ai_state.DwValue;
+	MODBUS.AI_MAIN_OPCUA[counter].Status:= ai_state;//analog[counter].State;
+	
+	//Передаем на верхний уровень
+	MODBUS.AI_MAIN_OUT[counter]:= MODBUS.AI_MAIN_OPCUA[counter].Value;
+	MODBUS.AI_MAIN_STATE[counter]:= MODBUS.AI_MAIN_OPCUA[counter].Status.DwValue;
+	MODBUS.AI_MAIN_IN[counter]:= MODBUS.AI_MAIN[counter].Value;
+	//MODBUS.AI_MAIN_OUT[counter].Status:= analog[counter].State;
+	//MODBUS.AI_MAIN_STATE[counter]:= analog[counter].State;
+	//AI_MAIN_STATE[counter]:= analog[counter].State;
+	
+	//Привязка входа к аналогу объекта
+	IF GetBinding(ObjectNumber:= counter, settings=> digital_binding) AND MAIN.main_itf[digital_binding.ItfNumber] <> NULL THEN
+		MAIN.main_itf[digital_binding.ItfNumber].SetAnalog(digital_binding.ObjectNumber, digital_binding.BitNumber, MODBUS.AI_MAIN_OPCUA[counter])(*MODBUS.AI_MAIN_OUT[counter])*);
+	END_IF
+END_FOR
+
+//Проверяем повторную привязку
+MODBUS.AI_MANAGER_DATA.DuplicateNumber:= GetBusy(MODBUS.AI_MANAGER_DATA.BindingData) OR Service();
+
+//Получаем привязки выбранного AI
+IF MODBUS.AI_MANAGER_DATA.Command = 2 THEN
+	GetBinding(ObjectNumber:= MODBUS.AI_MANAGER_DATA.SelectedNumber, Settings=> MODBUS.AI_MANAGER_DATA.BindingData);
+END_IF
+
+//Запись привязок по команде
+binding_tof(IN:= SaveBinding(ADR(MODBUS.AI_MANAGER_DATA)), PT:= T#1S);
+binding_ton(IN:= binding_tof.Q, PT:= T#500MS);
+IF binding_ton.Q THEN	//Команда сбрасывается при успешной записи
+	MODBUS.AI_MANAGER_DATA.Command:= 2;
+	MODBUS.AI_MANAGER_DATA.BindingData.ItfNumber:= 0;
+	MODBUS.AI_MANAGER_DATA.BindingData.ObjectNumber:= 0;
+	MODBUS.AI_MANAGER_DATA.BindingData.BitNumber:= 0;
+END_IF
+
+//Получаем настройки шкалирования выбранного AI
+IF MODBUS.AI_SETTINGS_DATA.Command = 2 THEN
+	MODBUS.AI_SETTINGS_DATA.Settings:= GetScale(MODBUS.AI_SETTINGS_DATA.SelectedNumber);
+END_IF
+
+//Запись настроек шкалирования по команде
+settings_tof(IN:= SaveScale(ADR(MODBUS.AI_SETTINGS_DATA)), PT:= T#1S);
+settings_ton(IN:= settings_tof.Q, PT:= T#500MS);
+IF settings_ton.Q THEN	//Команда сбрасывается при успешной записи
+	SettingsSaveDone();
+END_IF
+
+//Чтение настроек из файла
+IF MODBUS.AI_MANAGER_DATA.Command = 4 THEN
+	MODBUS.AI_MANAGER_DATA.Command:= ReadBindingFile('ai_binding.txt');//('/mnt/user/codesys/usb0/ai_binding.txt');
+END_IF
+
+file_header:= CONCAT(FILE_HEADER_UNITE, 'ObjectNumber$09ItfBinding$09ObjectBinding$09BitBinding$0A');
+//Сохранение настроек в файл
+IF MODBUS.AI_MANAGER_DATA.Command = 5 THEN
+	IF SaveBindingFile('ai_binding.txt', FILE_HEADER_UNITE)THEN//('/mnt/user/codesys/usb0/di_binding.txt');
+		MODBUS.AI_MANAGER_DATA.Command:= 6;//Успех
+	END_IF
+END_IF
+
+//Чтение настроек шкалирования из файла
+IF MODBUS.AI_SETTINGS_DATA.Command = 4 THEN
+//('/mnt/user/codesys/usb0/ai_settings.txt');
+	MODBUS.AI_SETTINGS_DATA.Command:= ReadScaleFile('ai_settings.txt');
+END_IF
+
+file_header:= CONCAT(FILE_HEADER_UNITE, 'ObjectNumber$09MinValue$09MaxValue$09MinScale$09MaxScale$09MinWarning$09MaxWarning$09MinAlarm$09MaxAlarm$09Average$09SensorNumScadaAmaks$0A');
+//Сохраняем настройки шкалирования AI в файл
+IF MODBUS.AI_SETTINGS_DATA.Command = 5 THEN
+	IF SaveScaleFile('ai_settings.txt', file_header) THEN
+		MODBUS.AI_SETTINGS_DATA.Command:= 6;
+	END_IF
+END_IF

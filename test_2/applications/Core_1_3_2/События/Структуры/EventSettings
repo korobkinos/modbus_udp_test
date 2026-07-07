@@ -1,0 +1,5 @@
+﻿TYPE EventSettings :
+STRUCT
+	Number			:	ARRAY[1..EVENT_QUANTITY] OF EventData;
+END_STRUCT
+END_TYPE

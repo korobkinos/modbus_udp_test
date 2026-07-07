@@ -1,0 +1,9 @@
+﻿TYPE EventManagerData EXTENDS CommandStructure :
+STRUCT
+	//DirectorNumber		:	WORD;	//Номер директора
+	//ItfNumber			:	WORD;	//Номер интерфейса
+	EventTotal			:	WORD;	//Событий задействовано
+	EventRemainder		:	WORD;	//Остаток событий
+	Settings			:	EventData;
+END_STRUCT
+END_TYPE
