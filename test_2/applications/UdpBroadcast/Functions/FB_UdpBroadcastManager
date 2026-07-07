@@ -2,8 +2,8 @@
 FUNCTION_BLOCK FB_UdpBroadcastManager
 (*
   Управляет несколькими UDP-каналами:
-  - берет настройки каналов из Settings;
-  - синхронизирует IP-адреса получателей из Modbus в Settings;
+  - uses channel settings assigned by program constants;
+  - reads target IP addresses from Modbus;
   - подставляет payload для каждого канала и запускает FB_UdpWordBroadcast.
 *)
 VAR_IN_OUT
@@ -45,13 +45,9 @@ END_VAR
 
 DetectLocalIp(SettingsRef := Settings);
 
-SyncSettingsFromModbus(
-    SettingsRef := Settings,
-    CommonMapRef := CommonMap
-);
+ApplyDefaultChannelSettings(SettingsRef := Settings);
 
 ApplyTargetIp(
-    SettingsRef := Settings,
     CommonMapRef := CommonMap
 );
 

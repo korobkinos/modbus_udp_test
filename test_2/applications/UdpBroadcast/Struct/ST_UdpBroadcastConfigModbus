@@ -1,20 +1,16 @@
-﻿{attribute 'pack_mode' := '1'}
-(*
-  Структура настроек одного UDP-канала в формате Holding Registers (Modbus).
-  Размер структуры: 12 регистров (WORD).
-*)
+{attribute 'pack_mode' := '1'}
 TYPE ST_UdpBroadcastConfigModbus :
 STRUCT
-    enable                 : WORD  := 1;                  (* 0 = только ручной start_send, <>0 = автозапуск по period_ms *)
-    signature              : DWORD := 16#534B4D41;        (* Идентификатор пакета, 2 регистра *)
-    packet_type            : WORD  := 1;                  (* Тип пакета в заголовке *)
-    version                : WORD  := 1;                  (* Версия протокола в заголовке *)
-    local_port             : WORD  := 15001;              (* Локальный UDP-порт *)
-    remote_port            : WORD  := 15000;              (* Удаленный UDP-порт *)
-    max_packet_bytes_limit : WORD  := 1472;               (* Лимит размера UDP-пакета, байт *)
-    period_ms              : WORD  := 2000;               (* Период цикла, миллисекунды *)
-    start_send             : WORD  := 0;                  (* 0/1, ручной запуск цикла по фронту 0->1 *)
-    payload_endianness     : WORD  := 0;                  (* 0=little, 1=swap bytes *)
-    inter_packet_delay_ms  : WORD  := 0;                  (* Пауза между пакетами внутри цикла, мс *)
+    enable                 : WORD;
+    signature              : DWORD;
+    packet_type            : WORD;
+    version                : WORD;
+    local_port             : WORD;
+    remote_port            : WORD;
+    max_packet_bytes_limit : WORD;
+    period_ms              : WORD;
+    start_send             : WORD;
+    payload_endianness     : WORD;
+    inter_packet_delay_ms  : WORD;
 END_STRUCT
 END_TYPE
