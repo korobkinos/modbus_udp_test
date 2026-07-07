@@ -14,6 +14,6 @@ STRUCT
     ];
 
     (* Статус IP-слота: 0 = используется, 1 = не используется, 2 = ошибка IP, 3 = дубликат IP. *)
-    target_status : ARRAY[1..4] OF WORD := [WORD#1, WORD#1, WORD#1, WORD#1];
+    target_status : ARRAY[1..4] OF WORD := [1, 1, 1, 1];
 END_STRUCT
 END_TYPE

@@ -8,7 +8,7 @@ END_VAR
 FOR ch := CHANNEL_FIRST TO CHANNEL_LAST DO
     (* start_send трактуется как команда на один цикл и сбрасывается после чтения. *)
     start_send_pulse := SettingsRef.channel_cfg[ch].start_send <> 0;
-    SettingsRef.channel_cfg[ch].start_send := WORD#0;
+    SettingsRef.channel_cfg[ch].start_send := 0;
 
     (* Канал работает при включенном канале, ручном старте или незавершенной отправке. *)
     fb_enable := WORD_TO_BOOL(SettingsRef.channel_cfg[ch].enable) OR start_send_pulse OR runtime_state[ch].busy;

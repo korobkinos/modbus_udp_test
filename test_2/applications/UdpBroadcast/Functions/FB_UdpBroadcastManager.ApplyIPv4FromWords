@@ -13,19 +13,19 @@ END_VAR
 
 // === IMPLEMENTATION ===
 
-ApplyIPv4FromWords := WORD#2;
+ApplyIPv4FromWords := 2;
 
-IF (Ip.octet_0 > WORD#255) OR
-   (Ip.octet_1 > WORD#255) OR
-   (Ip.octet_2 > WORD#255) OR
-   (Ip.octet_3 > WORD#255) THEN
+IF (Ip.octet_0 > 255) OR
+   (Ip.octet_1 > 255) OR
+   (Ip.octet_2 > 255) OR
+   (Ip.octet_3 > 255) THEN
     IpAddress := '';
     RETURN;
 END_IF
 
 IF (Ip.octet_0 = 0) AND (Ip.octet_1 = 0) AND (Ip.octet_2 = 0) AND (Ip.octet_3 = 0) THEN
     IpAddress := '';
-    ApplyIPv4FromWords := WORD#1;
+    ApplyIPv4FromWords := 1;
     RETURN;
 END_IF
 
@@ -40,11 +40,11 @@ IF SlotIndex > UINT#1 THEN
     FOR i := UINT#1 TO SlotIndex - UINT#1 DO
         IF (broadcast_ip[i] <> '') AND (sIp = broadcast_ip[i]) THEN
             IpAddress := '';
-            ApplyIPv4FromWords := WORD#3;
+            ApplyIPv4FromWords := 3;
             RETURN;
         END_IF
     END_FOR
 END_IF
 
 IpAddress := sIp;
-ApplyIPv4FromWords := WORD#0;
+ApplyIPv4FromWords := 0;

@@ -203,13 +203,13 @@ END_IF
 localAddrInitError := localAddr.SetInitialValue(LocalIp);
 
 (* Считаем только активные адреса. Дубликаты уже очищены при применении Modbus IP. *)
-activeTargetCount := WORD#0;
+activeTargetCount := 0;
 FOR targetScan := 1 TO 4 DO
     targetEnabled[targetScan] := (BroadcastIp[targetScan] <> '') AND (BroadcastIp[targetScan] <> '0.0.0.0');
     remoteAddrInitError[targetScan] := NBS.ERROR.NO_ERROR;
 
     IF targetEnabled[targetScan] THEN
-        activeTargetCount := activeTargetCount + WORD#1;
+        activeTargetCount := activeTargetCount + 1;
         remoteAddrInitError[targetScan] := remoteAddr[targetScan].SetInitialValue(BroadcastIp[targetScan]);
     END_IF
 END_FOR
@@ -261,7 +261,7 @@ CASE state OF
             RETURN;
         END_IF
 
-        IF activeTargetCount = WORD#0 THEN
+        IF activeTargetCount = 0 THEN
             Error := TRUE;
             ErrorId := NBS.ERROR.WRONG_PARAMETER;
             DiagErrorSource := 2;
@@ -565,7 +565,7 @@ CASE state OF
     60: (* CycleDone *)
         cycleElapsedMs := TIME_TO_UDINT(cycleTimer.ET);
         IF cycleElapsedMs > UDINT#65535 THEN
-            LastCycleTimeMs := WORD#65535;
+            LastCycleTimeMs := 65535;
         ELSE
             LastCycleTimeMs := UDINT_TO_WORD(cycleElapsedMs);
         END_IF

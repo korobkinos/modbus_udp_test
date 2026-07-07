@@ -1,0 +1,289 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Symbolconfiguration xmlns="http://www.3s-software.com/schemas/Symbolconfiguration.xsd">
+  <Header>
+    <Version>3.5.14.0</Version>
+    <SymbolConfigObject version="4.0.0.0" runtimeid="11.7.1.30" libversion="3.5.17.0" compiler="3.5.17.30" lmm="3.5.17.0" profile="Astra.IDE_V1.7+" settings="SupportOPCUA, LayoutCalculator=CompatibilityClientSideLayoutCalculator" />
+    <ProjectInfo name="SHUN_v_1_3_3___mod" devicename="REGUL_R500_71_W" appname="Application" />
+  </Header>
+  <TypeList>
+    <TypeUserDef name="T_IoDrvBase" size="276" nativesize="276" typeclass="Userdef" pouclass="FUNCTION_BLOCK" iecname="IoDrvBase" />
+    <TypeSimple name="T_BIT_X_0" size="1" swapsize="0" typeclass="Bit" iecname="BIT" bitoffset="0" />
+    <TypeSimple name="T_BIT_X_1" size="1" swapsize="0" typeclass="Bit" iecname="BIT" bitoffset="1" />
+    <TypeSimple name="T_BIT_X_2" size="1" swapsize="0" typeclass="Bit" iecname="BIT" bitoffset="2" />
+    <TypeSimple name="T_BIT_X_3" size="1" swapsize="0" typeclass="Bit" iecname="BIT" bitoffset="3" />
+    <TypeSimple name="T_BIT_X_4" size="1" swapsize="0" typeclass="Bit" iecname="BIT" bitoffset="4" />
+    <TypeSimple name="T_BIT_X_5" size="1" swapsize="0" typeclass="Bit" iecname="BIT" bitoffset="5" />
+    <TypeSimple name="T_BIT_X_6" size="1" swapsize="0" typeclass="Bit" iecname="BIT" bitoffset="6" />
+    <TypeSimple name="T_BIT_X_7" size="1" swapsize="0" typeclass="Bit" iecname="BIT" bitoffset="7" />
+    <TypeSimple name="T_BOOL" size="1" swapsize="0" typeclass="Bool" iecname="BOOL" />
+    <TypeSimple name="T_BYTE" size="1" swapsize="1" typeclass="Byte" iecname="BYTE" />
+    <TypeSimple name="T_DWORD" size="4" swapsize="4" typeclass="DWord" iecname="DWORD" />
+    <TypeUserDef name="T_IoDrvPsModbusTcpSlave" size="4488" nativesize="4488" typeclass="Userdef" pouclass="FUNCTION_BLOCK" iecname="IoDrvPsModbusTcpSlave" basetype="T_IoDrvBase" />
+    <TypeSimple name="T_REAL" size="4" swapsize="4" typeclass="Real" iecname="REAL" />
+    <TypeSimple name="T_WORD" size="2" swapsize="2" typeclass="Word" iecname="WORD" />
+    <TypeArray name="T_ARRAY__1__104__OF_DWORD" size="416" nativesize="416" typeclass="Array" iecname="ARRAY [1..104] OF DWORD" basetype="T_DWORD">
+      <ArrayDim minrange="1" maxrange="104" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__104__OF_REAL" size="416" nativesize="416" typeclass="Array" iecname="ARRAY [1..104] OF REAL" basetype="T_REAL">
+      <ArrayDim minrange="1" maxrange="104" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__10__OF_REAL" size="40" nativesize="40" typeclass="Array" iecname="ARRAY [1..10] OF REAL" basetype="T_REAL">
+      <ArrayDim minrange="1" maxrange="10" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__11__OF_WORD" size="22" nativesize="22" typeclass="Array" iecname="ARRAY [1..11] OF WORD" basetype="T_WORD">
+      <ArrayDim minrange="1" maxrange="11" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__13__OF_BOOL" size="13" nativesize="13" typeclass="Array" iecname="ARRAY [1..13] OF BOOL" basetype="T_BOOL">
+      <ArrayDim minrange="1" maxrange="13" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__15__OF_REAL" size="60" nativesize="60" typeclass="Array" iecname="ARRAY [1..15] OF REAL" basetype="T_REAL">
+      <ArrayDim minrange="1" maxrange="15" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__16__OF_DWORD" size="64" nativesize="64" typeclass="Array" iecname="ARRAY [1..16] OF DWORD" basetype="T_DWORD">
+      <ArrayDim minrange="1" maxrange="16" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__16__OF_WORD" size="32" nativesize="32" typeclass="Array" iecname="ARRAY [1..16] OF WORD" basetype="T_WORD">
+      <ArrayDim minrange="1" maxrange="16" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__45__OF_BYTE" size="45" nativesize="45" typeclass="Array" iecname="ARRAY [1..45] OF BYTE" basetype="T_BYTE">
+      <ArrayDim minrange="1" maxrange="45" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__45__OF_DWORD" size="180" nativesize="180" typeclass="Array" iecname="ARRAY [1..45] OF DWORD" basetype="T_DWORD">
+      <ArrayDim minrange="1" maxrange="45" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__45__OF_WORD" size="90" nativesize="90" typeclass="Array" iecname="ARRAY [1..45] OF WORD" basetype="T_WORD">
+      <ArrayDim minrange="1" maxrange="45" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__4__OF_DWORD" size="16" nativesize="16" typeclass="Array" iecname="ARRAY [1..4] OF DWORD" basetype="T_DWORD">
+      <ArrayDim minrange="1" maxrange="4" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__51__OF_BOOL" size="51" nativesize="51" typeclass="Array" iecname="ARRAY [1..51] OF BOOL" basetype="T_BOOL">
+      <ArrayDim minrange="1" maxrange="51" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__8__OF_REAL" size="32" nativesize="32" typeclass="Array" iecname="ARRAY [1..8] OF REAL" basetype="T_REAL">
+      <ArrayDim minrange="1" maxrange="8" />
+    </TypeArray>
+    <TypeUserDef name="T_AnalogStateBit" size="13" nativesize="2" typeclass="Userdef" pouclass="STRUCTURE" iecname="AnalogStateBit">
+      <UserDefElement iecname="Phys0" type="T_BIT_X_0" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Phys1" type="T_BIT_X_1" byteoffset="1" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Phys2" type="T_BIT_X_2" byteoffset="2" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Phys3" type="T_BIT_X_3" byteoffset="3" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Phys4" type="T_BIT_X_4" byteoffset="4" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Phys5" type="T_BIT_X_5" byteoffset="5" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Phys6" type="T_BIT_X_6" byteoffset="6" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Phys7" type="T_BIT_X_7" byteoffset="7" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="MinWarning" type="T_BIT_X_0" byteoffset="8" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="MaxWarning" type="T_BIT_X_1" byteoffset="9" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="MinAlarm" type="T_BIT_X_2" byteoffset="10" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="MaxAlarm" type="T_BIT_X_3" byteoffset="11" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Error" type="T_BIT_X_4" byteoffset="12" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ArmatureStateBit" size="32" nativesize="4" typeclass="Userdef" pouclass="STRUCTURE" iecname="ArmatureStateBit">
+      <UserDefElement iecname="PhysClosed" type="T_BIT_X_0" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="PhysOpen" type="T_BIT_X_1" byteoffset="1" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="PhysMoving" type="T_BIT_X_2" byteoffset="2" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Stop" type="T_BIT_X_3" byteoffset="3" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="MoveUp" type="T_BIT_X_4" byteoffset="4" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="MoveDown" type="T_BIT_X_5" byteoffset="5" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="ControlOn" type="T_BIT_X_6" byteoffset="6" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="PhysSpecial" type="T_BIT_X_7" byteoffset="7" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="AutoMode" type="T_BIT_X_0" byteoffset="8" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Error" type="T_BIT_X_1" byteoffset="9" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Blocked" type="T_BIT_X_2" byteoffset="10" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Imitation" type="T_BIT_X_3" byteoffset="11" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="TestMode" type="T_BIT_X_4" byteoffset="12" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="ManualMode" type="T_BIT_X_5" byteoffset="13" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="LockalMode" type="T_BIT_X_6" byteoffset="14" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="DistanceMode" type="T_BIT_X_7" byteoffset="15" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="MomentError" type="T_BIT_X_0" byteoffset="16" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit17" type="T_BIT_X_1" byteoffset="17" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit18" type="T_BIT_X_2" byteoffset="18" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit19" type="T_BIT_X_3" byteoffset="19" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit20" type="T_BIT_X_4" byteoffset="20" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit21" type="T_BIT_X_5" byteoffset="21" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit22" type="T_BIT_X_6" byteoffset="22" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit23" type="T_BIT_X_7" byteoffset="23" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit24" type="T_BIT_X_0" byteoffset="24" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit25" type="T_BIT_X_1" byteoffset="25" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit26" type="T_BIT_X_2" byteoffset="26" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit27" type="T_BIT_X_3" byteoffset="27" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit28" type="T_BIT_X_4" byteoffset="28" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit29" type="T_BIT_X_5" byteoffset="29" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit30" type="T_BIT_X_6" byteoffset="30" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Bit31" type="T_BIT_X_7" byteoffset="31" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_CommandStructure" size="4" nativesize="4" typeclass="Userdef" pouclass="STRUCTURE" iecname="CommandStructure">
+      <UserDefElement iecname="Command" type="T_WORD" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="SelectedNumber" type="T_WORD" byteoffset="2" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_DigitalBindingData" size="6" nativesize="6" typeclass="Userdef" pouclass="STRUCTURE" iecname="DigitalBindingData">
+      <UserDefElement iecname="ItfNumber" type="T_WORD" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="ObjectNumber" type="T_WORD" byteoffset="2" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="BitNumber" type="T_WORD" byteoffset="4" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_PidStateBit" size="6" nativesize="1" typeclass="Userdef" pouclass="STRUCTURE" iecname="PidStateBit">
+      <UserDefElement iecname="On" type="T_BIT_X_0" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Up" type="T_BIT_X_1" byteoffset="1" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Down" type="T_BIT_X_2" byteoffset="2" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="UpBlock" type="T_BIT_X_3" byteoffset="3" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="DownBlock" type="T_BIT_X_4" byteoffset="4" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="AnalogError" type="T_BIT_X_5" byteoffset="5" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ProtectStateBit" size="8" nativesize="1" typeclass="Userdef" pouclass="STRUCTURE" iecname="ProtectStateBit">
+      <UserDefElement iecname="OnControl" type="T_BIT_X_0" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="NotOn" type="T_BIT_X_1" byteoffset="1" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Warning" type="T_BIT_X_2" byteoffset="2" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Alarm" type="T_BIT_X_3" byteoffset="3" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Sensor1" type="T_BIT_X_4" byteoffset="4" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Sensor2" type="T_BIT_X_5" byteoffset="5" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Sensor3" type="T_BIT_X_6" byteoffset="6" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="SensorUnit" type="T_BIT_X_7" byteoffset="7" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_AnalogStateUnion" size="0" nativesize="4" typeclass="Userdef" pouclass="UNION" iecname="AnalogStateUnion">
+      <UserDefElement iecname="DwValue" type="T_DWORD" byteoffset="-1" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Flags" type="T_AnalogStateBit" byteoffset="-1" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ArmatureStateUnion" size="0" nativesize="4" typeclass="Userdef" pouclass="UNION" iecname="ArmatureStateUnion">
+      <UserDefElement iecname="DwValue" type="T_DWORD" byteoffset="-1" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Flags" type="T_ArmatureStateBit" byteoffset="-1" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_DigitalManagerData" size="12" nativesize="12" typeclass="Userdef" pouclass="STRUCTURE" iecname="DigitalManagerData" basetype="T_CommandStructure">
+      <UserDefElement iecname="Command" type="T_WORD" byteoffset="0" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="SelectedNumber" type="T_WORD" byteoffset="2" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="DuplicateNumber" type="T_WORD" byteoffset="4" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="BindingData" type="T_DigitalBindingData" byteoffset="6" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_EventData" size="22" nativesize="22" typeclass="Userdef" pouclass="STRUCTURE" iecname="EventData">
+      <UserDefElement iecname="Value" type="T_ARRAY__1__11__OF_WORD" byteoffset="0" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_PidData" size="60" nativesize="60" typeclass="Userdef" pouclass="STRUCTURE" iecname="PidData">
+      <UserDefElement iecname="Value" type="T_ARRAY__1__15__OF_REAL" byteoffset="0" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_PidStateUnion" size="0" nativesize="4" typeclass="Userdef" pouclass="UNION" iecname="PidStateUnion">
+      <UserDefElement iecname="DwValue" type="T_DWORD" byteoffset="-1" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Flags" type="T_PidStateBit" byteoffset="-1" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_PidTrendData" size="32" nativesize="32" typeclass="Userdef" pouclass="STRUCTURE" iecname="PidTrendData">
+      <UserDefElement iecname="Data" type="T_ARRAY__1__8__OF_REAL" byteoffset="0" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ProtectBindingData" size="8" nativesize="8" typeclass="Userdef" pouclass="STRUCTURE" iecname="ProtectBindingData" basetype="T_DigitalBindingData">
+      <UserDefElement iecname="ItfNumber" type="T_WORD" byteoffset="0" vartype="VAR" inherited_from="T_DigitalBindingData" access="ReadWrite" />
+      <UserDefElement iecname="ObjectNumber" type="T_WORD" byteoffset="2" vartype="VAR" inherited_from="T_DigitalBindingData" access="ReadWrite" />
+      <UserDefElement iecname="BitNumber" type="T_WORD" byteoffset="4" vartype="VAR" inherited_from="T_DigitalBindingData" access="ReadWrite" />
+      <UserDefElement iecname="BitInverse" type="T_WORD" byteoffset="6" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ProtectStateUnion" size="0" nativesize="4" typeclass="Userdef" pouclass="UNION" iecname="ProtectStateUnion">
+      <UserDefElement iecname="DwValue" type="T_DWORD" byteoffset="-1" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Flags" type="T_ProtectStateBit" byteoffset="-1" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ScaleData" size="40" nativesize="40" typeclass="Userdef" pouclass="STRUCTURE" iecname="ScaleData">
+      <UserDefElement iecname="Value" type="T_ARRAY__1__10__OF_REAL" byteoffset="0" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeArray name="T_ARRAY__1__16__OF_ProtectStateUnion" size="0" nativesize="64" typeclass="Array" iecname="ARRAY [1..16] OF ProtectStateUnion" basetype="T_ProtectStateUnion">
+      <ArrayDim minrange="1" maxrange="16" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__3__OF_ProtectBindingData" size="24" nativesize="24" typeclass="Array" iecname="ARRAY [1..3] OF ProtectBindingData" basetype="T_ProtectBindingData">
+      <ArrayDim minrange="1" maxrange="3" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__45__OF_ArmatureStateUnion" size="0" nativesize="180" typeclass="Array" iecname="ARRAY [1..45] OF ArmatureStateUnion" basetype="T_ArmatureStateUnion">
+      <ArrayDim minrange="1" maxrange="45" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__4__OF_PidStateUnion" size="0" nativesize="16" typeclass="Array" iecname="ARRAY [1..4] OF PidStateUnion" basetype="T_PidStateUnion">
+      <ArrayDim minrange="1" maxrange="4" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__4__OF_PidTrendData" size="128" nativesize="128" typeclass="Array" iecname="ARRAY [1..4] OF PidTrendData" basetype="T_PidTrendData">
+      <ArrayDim minrange="1" maxrange="4" />
+    </TypeArray>
+    <TypeUserDef name="T_AiChData" size="8" nativesize="8" typeclass="Userdef" pouclass="STRUCTURE" iecname="AiChData">
+      <UserDefElement iecname="Value" type="T_REAL" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Status" type="T_AnalogStateUnion" byteoffset="4" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_AiSettingsData" size="44" nativesize="44" typeclass="Userdef" pouclass="STRUCTURE" iecname="AiSettingsData" basetype="T_CommandStructure">
+      <UserDefElement iecname="Command" type="T_WORD" byteoffset="0" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="SelectedNumber" type="T_WORD" byteoffset="2" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="Settings" type="T_ScaleData" byteoffset="4" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_EventManagerData" size="30" nativesize="30" typeclass="Userdef" pouclass="STRUCTURE" iecname="EventManagerData" basetype="T_CommandStructure">
+      <UserDefElement iecname="Command" type="T_WORD" byteoffset="0" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="SelectedNumber" type="T_WORD" byteoffset="2" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="EventTotal" type="T_WORD" byteoffset="4" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="EventRemainder" type="T_WORD" byteoffset="6" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Settings" type="T_EventData" byteoffset="8" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_PidManagerData" size="64" nativesize="64" typeclass="Userdef" pouclass="STRUCTURE" iecname="PidManagerData" basetype="T_CommandStructure">
+      <UserDefElement iecname="Command" type="T_WORD" byteoffset="0" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="SelectedNumber" type="T_WORD" byteoffset="2" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="Settings" type="T_PidData" byteoffset="4" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ProtectCommandStructure" size="8" nativesize="8" typeclass="Userdef" pouclass="STRUCTURE" iecname="ProtectCommandStructure" basetype="T_CommandStructure">
+      <UserDefElement iecname="Command" type="T_WORD" byteoffset="0" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="SelectedNumber" type="T_WORD" byteoffset="2" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="State" type="T_ProtectStateUnion" byteoffset="4" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeArray name="T_ARRAY__1__104__OF_AiChData" size="832" nativesize="832" typeclass="Array" iecname="ARRAY [1..104] OF AiChData" basetype="T_AiChData">
+      <ArrayDim minrange="1" maxrange="104" />
+    </TypeArray>
+    <TypeArray name="T_ARRAY__1__5__OF_AiChData" size="40" nativesize="40" typeclass="Array" iecname="ARRAY [1..5] OF AiChData" basetype="T_AiChData">
+      <ArrayDim minrange="1" maxrange="5" />
+    </TypeArray>
+    <TypeUserDef name="T_ProtectData" size="26" nativesize="26" typeclass="Userdef" pouclass="STRUCTURE" iecname="ProtectData">
+      <UserDefElement iecname="Sensor" type="T_ARRAY__1__3__OF_ProtectBindingData" byteoffset="0" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="Delay" type="T_WORD" byteoffset="24" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ObjectAnalogData" size="40" nativesize="40" typeclass="Userdef" pouclass="STRUCTURE" iecname="ObjectAnalogData">
+      <UserDefElement iecname="Number" type="T_ARRAY__1__5__OF_AiChData" byteoffset="0" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeUserDef name="T_ProtectManagerData" size="30" nativesize="30" typeclass="Userdef" pouclass="STRUCTURE" iecname="ProtectManagerData" basetype="T_CommandStructure">
+      <UserDefElement iecname="Command" type="T_WORD" byteoffset="0" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="SelectedNumber" type="T_WORD" byteoffset="2" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="Settings" type="T_ProtectData" byteoffset="4" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+    <TypeArray name="T_ARRAY__1__45__OF_ObjectAnalogData" size="1800" nativesize="1800" typeclass="Array" iecname="ARRAY [1..45] OF ObjectAnalogData" basetype="T_ObjectAnalogData">
+      <ArrayDim minrange="1" maxrange="45" />
+    </TypeArray>
+    <TypeUserDef name="T_ArmatureCommandStructure" size="48" nativesize="48" typeclass="Userdef" pouclass="STRUCTURE" iecname="ArmatureCommandStructure" basetype="T_CommandStructure">
+      <UserDefElement iecname="Command" type="T_WORD" byteoffset="0" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="SelectedNumber" type="T_WORD" byteoffset="2" vartype="VAR" inherited_from="T_CommandStructure" access="ReadWrite" />
+      <UserDefElement iecname="State" type="T_ArmatureStateUnion" byteoffset="4" vartype="VAR" access="ReadWrite" />
+      <UserDefElement iecname="AnalogData" type="T_ObjectAnalogData" byteoffset="8" vartype="VAR" access="ReadWrite" />
+    </TypeUserDef>
+  </TypeList>
+  <NodeList>
+    <Node name="Application">
+      <Node name="IoConfig_Globals">
+        <Node name="Modbus_TCP_Slave" type="T_IoDrvPsModbusTcpSlave" access="ReadWrite" />
+      </Node>
+      <Node name="MODBUS">
+        <Node name="AI_MAIN_IN" type="T_ARRAY__1__104__OF_REAL" access="ReadWrite" />
+        <Node name="AI_MAIN_OPCUA" type="T_ARRAY__1__104__OF_AiChData" access="ReadWrite" />
+        <Node name="AI_MAIN_OUT" type="T_ARRAY__1__104__OF_REAL" access="ReadWrite" />
+        <Node name="AI_MAIN_STATE" type="T_ARRAY__1__104__OF_DWORD" access="ReadWrite" />
+        <Node name="AI_MANAGER_DATA" type="T_DigitalManagerData" access="ReadWrite" />
+        <Node name="AI_MODUL_ERROR" type="T_ARRAY__1__13__OF_BOOL" access="ReadWrite" />
+        <Node name="AI_SETTINGS_DATA" type="T_AiSettingsData" access="ReadWrite" />
+        <Node name="ARMATURE_ANALOG_OPCUA" type="T_ARRAY__1__45__OF_ObjectAnalogData" access="ReadWrite" />
+        <Node name="ARMATURE_COMMAND" type="T_ARRAY__1__45__OF_WORD" access="ReadWrite" />
+        <Node name="ARMATURE_STATE" type="T_ARRAY__1__45__OF_DWORD" access="ReadWrite" />
+        <Node name="ARMATURE_STATE_BYTE" type="T_ARRAY__1__45__OF_BYTE" access="ReadWrite" />
+        <Node name="ARMATURE_STATE_OPCUA" type="T_ARRAY__1__45__OF_ArmatureStateUnion" access="ReadWrite" />
+        <Node name="DI_MANAGER_DATA" type="T_DigitalManagerData" access="ReadWrite" />
+        <Node name="DO_MANAGER_DATA" type="T_DigitalManagerData" access="ReadWrite" />
+        <Node name="EVENT_MANAGER_DATA" type="T_EventManagerData" access="ReadWrite" />
+        <Node name="FILE_COMMAND_PANEL" type="T_CommandStructure" access="ReadWrite" />
+        <Node name="MODUL_ERROR" type="T_ARRAY__1__51__OF_BOOL" access="ReadWrite" directaddress="%MB0" />
+        <Node name="PLC_NUMBER" type="T_WORD" access="ReadWrite" />
+        <Node name="PROTECT_COMMAND" type="T_ARRAY__1__16__OF_WORD" access="ReadWrite" />
+        <Node name="PROTECT_MANAGER_DATA" type="T_ProtectManagerData" access="ReadWrite" />
+        <Node name="PROTECT_STATE" type="T_ARRAY__1__16__OF_DWORD" access="ReadWrite" />
+        <Node name="PROTECT_STATE_OPCUA" type="T_ARRAY__1__16__OF_ProtectStateUnion" access="ReadWrite" />
+        <Node name="REGULATOR_MANAGER_DATA" type="T_DigitalManagerData" access="ReadWrite" />
+        <Node name="REGULATOR_SETTINGS_DATA" type="T_PidManagerData" access="ReadWrite" />
+        <Node name="REGULATOR_STATE" type="T_ARRAY__1__4__OF_DWORD" access="ReadWrite" />
+        <Node name="REGULATOR_STATE_OPCUA" type="T_ARRAY__1__4__OF_PidStateUnion" access="ReadWrite" />
+        <Node name="REGULATOR_TREND_DATA" type="T_ARRAY__1__4__OF_PidTrendData" access="ReadWrite" />
+        <Node name="SELECTED_ARMATURE_OPCUA" type="T_ArmatureCommandStructure" access="ReadWrite" />
+        <Node name="SELECTED_PROTECT_OPCUA" type="T_ProtectCommandStructure" access="ReadWrite" />
+      </Node>
+    </Node>
+  </NodeList>
+</Symbolconfiguration>
