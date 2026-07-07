@@ -2,22 +2,22 @@
 FUNCTION_BLOCK FB_UdpBroadcastManager
 (*
   Управляет несколькими UDP-каналами:
-  - uses channel settings assigned by program constants;
-  - reads target IP addresses from Modbus;
-  - подставляет payload для каждого канала и запускает FB_UdpWordBroadcast.
+  - задает настройки каналов жесткими константами;
+  - читает IP-адреса получателей из Modbus;
+  - запускает FB_UdpWordBroadcast для каждого канала.
 *)
 VAR_IN_OUT
-    Settings  : ST_UdpBroadcastSettings;
-    CommonMap : ST_UdpBroadcastCommonModbus;
+    Settings  : ST_UdpBroadcastSettings;     (* Рабочие настройки UDP-каналов. *)
+    CommonMap : ST_UdpBroadcastCommonModbus; (* Modbus-карта IP-адресов и статусов. *)
 END_VAR
 VAR_OUTPUT
-    Active : BOOL;
+    Active : BOOL; (* FB_UdpBroadcastManager выполняется. *)
 END_VAR
 VAR
-    CHANNEL_FIRST : UINT := 0;
-    CHANNEL_LAST  : UINT := 9;
-    IP_SLOT_FIRST : UINT := 1;
-    IP_SLOT_LAST  : UINT := 4;
+    CHANNEL_FIRST : UINT := 0; (* Первый UDP-канал. *)
+    CHANNEL_LAST  : UINT := 9; (* Последний UDP-канал. *)
+    IP_SLOT_FIRST : UINT := 1; (* Первый слот IP-получателя. *)
+    IP_SLOT_LAST  : UINT := 4; (* Последний слот IP-получателя. *)
 
     (* Рабочие экземпляры отправителя и состояние каналов. *)
     tx : ARRAY[0..9] OF FB_UdpWordBroadcast;
@@ -30,29 +30,34 @@ VAR
     (* Подготовленные IP-адреса назначения. *)
     broadcast_ip : ARRAY[1..4] OF STRING(16);
 
-    local_ip_init_done : BOOL;
-    detected_local_ip : STRING(16);
+    local_ip_init_done : BOOL;       (* Локальный IP уже определен. *)
+    detected_local_ip : STRING(16);  (* Найденный локальный IP. *)
 
-    ch : UINT;
-    ip_slot : UINT;
-    start_send_pulse : BOOL;
-    fb_enable : BOOL;
-    current_payload_ptr : POINTER TO BYTE;
-    current_payload_size_bytes : UDINT;
+    ch : UINT;                         (* Индекс UDP-канала. *)
+    ip_slot : UINT;                    (* Индекс IP-слота. *)
+    start_send_pulse : BOOL;           (* Одноцикловая команда ручной отправки. *)
+    fb_enable : BOOL;                  (* Разрешение работы текущего канала. *)
+    current_payload_ptr : POINTER TO BYTE; (* Указатель на payload текущего канала. *)
+    current_payload_size_bytes : UDINT;    (* Размер payload текущего канала. *)
 END_VAR
 
 // === IMPLEMENTATION ===
 
+(* Определяем локальный IP один раз при старте. *)
 DetectLocalIp(SettingsRef := Settings);
 
+(* Каждый цикл задаем жесткие настройки UDP-каналов. *)
 ApplyDefaultChannelSettings(SettingsRef := Settings);
 
+(* Читаем IP получателей из Modbus-карты и формируем статусы IP-слотов. *)
 ApplyTargetIp(
     CommonMapRef := CommonMap
 );
 
+(* Запускаем отправку по всем UDP-каналам. *)
 RunChannels(
     SettingsRef := Settings
 );
 
+(* Блок выполнил текущий цикл. *)
 Active := TRUE;

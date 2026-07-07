@@ -1,4 +1,4 @@
-﻿METHOD PRIVATE DetectLocalIp : BOOL
+METHOD PRIVATE DetectLocalIp : BOOL
 VAR_IN_OUT
     SettingsRef : ST_UdpBroadcastSettings;
 END_VAR

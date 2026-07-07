@@ -1,4 +1,4 @@
-﻿METHOD PRIVATE GetLocalIPv4 : STRING(16)
+METHOD PRIVATE GetLocalIPv4 : STRING(16)
 VAR
     stAdapter : SysSocket.SOCK_ADAPTER_INFORMATION;
     hAdapter  : UDINT;

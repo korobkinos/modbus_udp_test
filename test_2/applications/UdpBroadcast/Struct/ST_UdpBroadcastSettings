@@ -1,7 +1,5 @@
 TYPE ST_UdpBroadcastSettings :
 STRUCT
-    enable_all : BOOL;
-
     local_ip   : STRING(255) := '192.168.4.220';
 
     channel_cfg : ARRAY[0..9] OF ST_UdpBroadcastConfigModbus;

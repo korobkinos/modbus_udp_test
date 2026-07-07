@@ -1,4 +1,4 @@
-﻿METHOD PRIVATE ApplyTargetIp : BOOL
+METHOD PRIVATE ApplyTargetIp : BOOL
 VAR_IN_OUT
     CommonMapRef : ST_UdpBroadcastCommonModbus;
 END_VAR

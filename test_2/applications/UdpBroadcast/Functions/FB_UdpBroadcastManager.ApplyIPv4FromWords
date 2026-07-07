@@ -1,4 +1,4 @@
-﻿METHOD PRIVATE ApplyIPv4FromWords : WORD
+METHOD PRIVATE ApplyIPv4FromWords : WORD
 VAR_INPUT
     Ip : ST_UdpIPv4Modbus;
     SlotIndex : UINT;
